@@ -1,0 +1,64 @@
+@import "tailwindcss";
+
+* {
+    box-sizing: border-box;
+    font-family: "Karla", sans-serif;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    height: 100vh;
+}
+
+.heading h1, .subtext {
+    font-family: "Archivo Black", sans-serif;
+}
+
+.image {
+    border-radius: 50% 50% 10px 10px;
+}
+
+.details-container img {
+    filter: brightness(0) saturate(100%) invert(100%) sepia(0%) saturate(0%) hue-rotate(273deg) brightness(104%) contrast(103%);
+}
+
+::-webkit-scrollbar {
+    width: 10px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f5f9;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}
+
+* {
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.offer-icons img {
+    filter: brightness(0) saturate(100%) invert(68%) sepia(38%) saturate(5604%) hue-rotate(1deg) brightness(106%) contrast(104%);
+}
+
+.user-details h3, .user-details p {
+    font-family: "Cormorant Infant", serif;
+}
+
+.reservation {
+    background: url("../src/assets/resturant-image/retaurant-image-1.jpg")
+                no-repeat center center;
+    -webkit-background-size: cover;
+    -moz-background-size: cover;
+    -o-background-size: cover;
+    background-size: cover;
+}
