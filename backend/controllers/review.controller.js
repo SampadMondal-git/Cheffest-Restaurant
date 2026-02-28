@@ -39,3 +39,50 @@ export const postReview = async (req, res) => {
         return res.status(500).json({ message: "Internal server error" });
     }
 };
+
+export const deleteReview = async (req, res) => {
+    try {
+        const { reviewId } = req.params;
+
+        const review = await Review.findById(reviewId);
+
+        if (!review) {
+            return res.status(404).json({ message: "Review not found" });
+        }
+
+        const itemId = review.item;
+
+        await review.deleteOne();
+
+        const stats = await Review.aggregate([
+            { $match: { item: itemId } },
+            {
+                $group: {
+                    _id: "$item",
+                    averageRating: { $avg: "$rating" },
+                    reviewCount: { $sum: 1 }
+                }
+            }
+        ]);
+
+        const averageRating = stats.length
+            ? Number(stats[0].averageRating.toFixed(2))
+            : 0;
+
+        const reviewCount = stats.length ? stats[0].reviewCount : 0;
+
+        await Item.findByIdAndUpdate(itemId, {
+            averageRating,
+            reviewCount,
+        });
+
+        res.status(200).json({
+            message: "Review deleted",
+            averageRating,
+        });
+
+    } catch (error) {
+        console.error("Delete review error:", error);
+        res.status(500).json({ message: "Internal server error" });
+    }
+};
