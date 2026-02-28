@@ -14,6 +14,8 @@
 
 // Merge tags with items ! done
 
-// Do next - rating delete & update rating after delete any rating
+// Rating delete & update rating after delete any rating done
+
+// Next task - Feedback form & Book table
 
 // Future task - Delete items, update items, update prices, manage categories
