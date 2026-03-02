@@ -16,6 +16,6 @@
 
 // Rating delete & update rating after delete any rating done
 
-// Next task - Feedback form & Book table
+// Feedback form & Book table done
 
 // Future task - Delete items, update items, update prices, manage categories
