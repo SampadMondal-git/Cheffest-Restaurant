@@ -1,7 +1,7 @@
 import express from 'express'
 import dotenv from 'dotenv'
 import authRoute from './routes/auth.routes.js'
-import postItem from './routes/postItem.routes.js'
+import itemsRoute from './routes/item.routes.js'
 import postReview from './routes/review.routes.js'
 import postFeedback from './routes/feedback.routes.js'
 import bookReservation from './routes/reservation.routes.js'
@@ -18,7 +18,7 @@ const app = express()
 app.use(express.json())
 
 app.use('/api/auth', authRoute) // Auth base route
-app.use('/api/products', postItem) // Items base route
+app.use('/api/products', itemsRoute) // Items base route
 app.use('/api/reviews', postReview) // Reviews base route
 app.use('/api/feedback', postFeedback) // Feedback base route
 app.use('/api/reservation', bookReservation) // Reservation base route

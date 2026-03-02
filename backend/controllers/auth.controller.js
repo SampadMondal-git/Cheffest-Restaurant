@@ -100,6 +100,13 @@ export const login = async (req, res) => {
       return res.status(401).json({ message: "User doesn't exist" });
     }
 
+    // Make this logic for admin and user login separately
+    if (user.isAdmin) {
+      console.log("Welcome admin");
+    } else {
+      console.log("Welcome user");
+    }
+
     const isPasswordValid = await bcrypt.compare(password, user.password);
 
     if (!isPasswordValid) {
