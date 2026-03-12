@@ -1,7 +1,9 @@
 import userModel from "../model/user.model.js";
 import bcrypt from "bcrypt";
+import crypto from "crypto";
 import validator from "validator";
 import generateToken from "../utils/generatesToken.js";
+import sendEmail from "../services/emailService.js";
 
 export const signup = async (req, res) => {
   // logic of signup route
@@ -100,13 +102,6 @@ export const login = async (req, res) => {
       return res.status(401).json({ message: "User doesn't exist" });
     }
 
-    // Make this logic for admin and user login separately
-    if (user.isAdmin) {
-      console.log("Welcome admin");
-    } else {
-      console.log("Welcome user");
-    }
-
     const isPasswordValid = await bcrypt.compare(password, user.password);
 
     if (!isPasswordValid) {
@@ -126,7 +121,12 @@ export const login = async (req, res) => {
 export const logout = async (req, res) => {
   // logic of logout route
   try {
-    res.clearCookie("jwt");
+    res.clearCookie("jwt", {
+      httpOnly: true,
+      secure: true,
+      sameSite: "Strict",
+      path: "/",
+    });
     return res.status(200).json({ message: "Logout successful" });
   } catch (error) {
     console.error("Logout error:", error);
@@ -137,11 +137,7 @@ export const logout = async (req, res) => {
 export const forgotPassword = async (req, res) => {
   // logic of forgot password route
   try {
-    const { email, password, confirmPassword } = req.body;
-
-    if (!email || !password || !confirmPassword) {
-      return res.status(400).json({ message: "Missing required fields" });
-    }
+    const { email } = req.body;
 
     if (!email) {
       return res.status(400).json({ message: "Please provide your email" });
@@ -154,26 +150,85 @@ export const forgotPassword = async (req, res) => {
     const user = await userModel.findOne({ email });
 
     if (!user) {
-      return res.status(404).json({ message: "User doesn't exist" });
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const token = crypto.randomBytes(32).toString("hex");
+
+    user.resetPasswordToken = token;
+    user.resetPasswordExpire = Date.now() + 1800000; // 30 minutes
+
+    await user.save();
+
+    const resetPasswordUrl = `http://localhost:3000/reset-password/${token}`;
+
+    await sendEmail(
+      email,
+      "Password Reset",
+      `Click the link below to reset your password: ${resetPasswordUrl}`
+    );
+
+    return res.status(200).json({ message: "Password reset email sent successfully", data: user, token });
+  } catch (error) {
+    console.error("Forgot password error:", error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+}
+
+export const validateToken = async (req, res) => {
+  // logic of reset password route
+  try {
+    const user = await userModel.findOne({
+      resetPasswordToken: req.params.token,
+      resetPasswordExpire: { $gt: Date.now() },
+    });
+
+    if (!user) {
+      return res.status(400).json({ message: "Invalid or expired token" });
+    }
+
+    return res.status(200).json({ message: "Token is valid" });
+  } catch (error) {
+    console.error("Reset password error:", error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+}
+
+export const resetPassword = async (req, res) => {
+  // logic of reset password route
+  try {
+    const { token, password, confirmPassword } = req.body;
+
+    if (!token || !password || !confirmPassword) {
+      return res.status(400).json({ message: "Missing required fields" });
     }
 
     if (password !== confirmPassword) {
-      return res.status(400).json({ message: "Passwords do not match" });
+      return res.status(400).json({ message: "Password does not match" });
     }
 
     if (password.length < 8) {
       return res.status(400).json({ message: "Password must be at least 8 characters" });
     }
 
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
+    const user = await userModel.findOne({
+      resetPasswordToken: token,
+      resetPasswordExpire: { $gt: Date.now() },
+    });
 
-    user.password = hashedPassword;
+    if (!user) {
+      return res.status(400).json({ message: "Invalid or expired token" });
+    }
+
+    user.password = await bcrypt.hash(password, 10);
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpire = undefined;
+
     await user.save();
 
-    return res.status(200).json({ message: "Password updated successfully" });
+    return res.status(200).json({ message: "Password reset successfully" });
   } catch (error) {
-     console.error("Forgot password error:", error);
+    console.error("Reset password error:", error);
     return res.status(500).json({ message: "Internal server error" });
   }
 }
