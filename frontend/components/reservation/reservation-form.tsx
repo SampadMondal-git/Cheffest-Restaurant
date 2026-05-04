@@ -1,6 +1,31 @@
-import reserved from '../../src/assets/resturant-image/reserved.jpg'
+import { useState } from "react";
+import { BookTableForm } from "../../api/manageReservation";
 
 function ReservationForm() {
+
+    const [name, setName] = useState('');
+    const [phone, setPhone] = useState('');
+    const [email, setEmail] = useState('');
+    const [date, setDate] = useState('');
+    const [time, setTime] = useState('');
+    const [person, setPerson] = useState('');
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+
+        try {
+            const response = await BookTableForm(name, email, phone, Number(person), time, date);
+            console.log(response);
+
+            setName('');
+            setEmail('');
+            setPhone('');
+            setPerson('');
+            setTime('');
+            setDate('');
+        } catch (error) {
+            console.error(error);
+        }
+    }
     return (
         <div className="flex justify-center items-center flex-col py-12 gap-4 text-center">
             <h1 className="text-lg uppercase border-t border-b border-[#ff9900] font-bold tracking-[0.5rem]">Reservation</h1>
@@ -16,7 +41,7 @@ function ReservationForm() {
                             {/* Main image with layered effect */}
                             <div className="relative overflow-hidden rounded-2xl shadow-2xl">
                                 <img
-                                    src={reserved}
+                                    src="https://images.unsplash.com/photo-1599458252573-56ae36120de1?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
                                     className="w-full h-[500px] object-cover transform hover:scale-110 transition-transform duration-700"
                                     alt="Restaurant interior" loading="lazy"
                                 />
@@ -37,10 +62,12 @@ function ReservationForm() {
                     </p>
 
                     <div className="form max-w-xl">
-                        <form className="grid grid-cols-2 gap-4">
+                        <form className="grid grid-cols-2 gap-4" onSubmit={handleSubmit}>
                             <input
                                 type="text"
                                 placeholder="Name"
+                                value={name}
+                                onChange={(e) => setName(e.target.value)}
                                 className="col-span-1 border border-gray-300 rounded-md px-4 py-3 focus:outline-none focus:ring-2 focus:ring-orange-400"
                                 required
                             />
@@ -48,25 +75,34 @@ function ReservationForm() {
                             <input
                                 type="email"
                                 placeholder="Email"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
                                 className="col-span-1 border border-gray-300 rounded-md px-4 py-3 focus:outline-none focus:ring-2 focus:ring-orange-400"
                                 required
                             />
 
                             <input
                                 type="text"
-                                placeholder="Phone"
+                                placeholder="Phone (Optional)"
+                                value={phone}
+                                onChange={(e) => setPhone(e.target.value)}
                                 className="col-span-1 border border-gray-300 rounded-md px-4 py-3 focus:outline-none focus:ring-2 focus:ring-orange-400"
-                                required
                             />
 
                             <input
                                 type="date"
+                                placeholder="Date"
+                                value={date}
+                                onChange={(e) => setDate(e.target.value)}
                                 className="col-span-1 border border-gray-300 rounded-md px-4 py-3 focus:outline-none focus:ring-2 focus:ring-orange-400"
                                 required
                             />
 
                             <input
                                 type="time"
+                                placeholder="Time"
+                                value={time}
+                                onChange={(e) => setTime(e.target.value)}
                                 className="col-span-1 border border-gray-300 rounded-md px-4 py-3 focus:outline-none focus:ring-2 focus:ring-orange-400"
                                 required
                             />
@@ -75,6 +111,8 @@ function ReservationForm() {
                                 type="number"
                                 placeholder="Person"
                                 min="1"
+                                value={person}
+                                onChange={(e) => setPerson(e.target.value)}
                                 className="col-span-1 border border-gray-300 rounded-md px-4 py-3 focus:outline-none focus:ring-2 focus:ring-orange-400"
                                 required
                             />
@@ -82,6 +120,7 @@ function ReservationForm() {
                             <button
                                 type="submit"
                                 className="col-span-2 mt-4 bg-[#ff9900] text-white font-semibold py-3 rounded-md hover:bg-[#ff8800] transition cursor-pointer"
+                            // onClick={handleSubmit}
                             >
                                 Book a Table
                             </button>
