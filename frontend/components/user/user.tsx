@@ -67,13 +67,20 @@ type UserDropdownProps = {
 
 const UserDropdown: React.FC<UserDropdownProps> = ({
   user,
-  onProfile = () => alert("Profile clicked"),
-  onOrders = () => alert("Orders clicked"),
-  onReservations = () => alert("Reservations clicked"),
+  onProfile,
+  onOrders,
+  onReservations,
   onLogout = () => alert("Logout clicked"),
   onDashboard,
 }) => {
   const navigate = useNavigate();
+  const handleProfile = () => {
+    if (onProfile) {
+      onProfile();
+    } else {
+      navigate("/profile");
+    }
+  }
   const handleDashboard = () => {
     if (onDashboard) {
       onDashboard();
@@ -81,6 +88,23 @@ const UserDropdown: React.FC<UserDropdownProps> = ({
       navigate("/dashboard");
     }
   };
+
+  const getOrder = () => {
+    if (onOrders) {
+      onOrders();
+    } else {
+      navigate("/orders");
+    }
+  }
+
+  const getReservation = () => {
+    if (onReservations) {
+      onReservations();
+    } else {
+      navigate("/reservations");
+    }
+  }
+
   const [open, setOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -161,7 +185,7 @@ const UserDropdown: React.FC<UserDropdownProps> = ({
               <DropdownItem
                 label="Profile"
                 onClick={() => {
-                  onProfile();
+                  handleProfile();
                   setOpen(false);
                 }}
                 icon={
@@ -188,7 +212,7 @@ const UserDropdown: React.FC<UserDropdownProps> = ({
               <DropdownItem
                 label="Orders"
                 onClick={() => {
-                  onOrders();
+                  getOrder();
                   setOpen(false);
                 }}
                 icon={
@@ -200,7 +224,7 @@ const UserDropdown: React.FC<UserDropdownProps> = ({
               <DropdownItem
                 label="Reservations"
                 onClick={() => {
-                  onReservations();
+                  getReservation();
                   setOpen(false);
                 }}
                 icon={
