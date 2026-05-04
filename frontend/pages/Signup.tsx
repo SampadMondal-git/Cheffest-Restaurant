@@ -1,6 +1,6 @@
 import { Link, useNavigate } from "react-router-dom"
 import { useState } from "react"
-import signup from "../api/signup"
+import { signup } from "../api/authService"
 
 type SignupProps = {
     onLogin: (token: string, userData: any) => void;
@@ -19,7 +19,7 @@ const Signup = ({ onLogin }: SignupProps) => {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
 
-        if (password !== confirmPassword) {
+        if (password.trim() !== confirmPassword.trim()) {
             alert("Passwords do not match")
             return
         }
