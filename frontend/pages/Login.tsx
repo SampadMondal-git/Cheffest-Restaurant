@@ -1,6 +1,36 @@
-import { Link } from "react-router-dom"
+import { Link, useNavigate } from "react-router-dom"
+import { useState } from "react"
+import { login } from "../api/authService"
 
-function Login() {
+type LoginProps = {
+    onLogin: (token: string, userData: any) => void;
+};
+
+const Login = ({ onLogin }: LoginProps) => {
+
+    const [identifier, setIdentifier] = useState("")
+    const [password, setPassword] = useState("")
+
+    const navigate = useNavigate()
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault()
+
+        try {
+            const response = await login(identifier, password)
+            console.log(response)
+
+            localStorage.setItem("token", response.token)
+            onLogin(response.token, response.data)
+
+            setIdentifier("")
+            setPassword("")
+
+            navigate("/")
+        } catch (error) {
+            console.error(error)
+        }
+    }
 
     return (
         <div className="flex justify-center items-center flex-col py-12 gap-4 text-center">
@@ -10,15 +40,17 @@ function Login() {
                 </h3>
 
                 <h1 className="text-4xl text-center font-bold">
-                    Sign in to Admin Dashboard
+                    Sign in to your account
                 </h1>
 
                 <div className="form w-full">
-                    <form className="flex flex-col gap-4 max-w-sm mx-auto" onSubmit={(e) => e.preventDefault()}>
+                    <form className="flex flex-col gap-4 max-w-sm mx-auto" onSubmit={handleSubmit}>
                         <input
                             type="text"
                             placeholder="Email or Phone number"
                             name="email"
+                            value={identifier}
+                            onChange={(e) => setIdentifier(e.target.value)}
                             className="w-full border border-gray-300 rounded-md px-4 py-3 focus:outline-none focus:ring-2 focus:ring-orange-400"
                             required
                         />
@@ -27,6 +59,8 @@ function Login() {
                             type="password"
                             placeholder="Password"
                             name="password"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
                             className="w-full border border-gray-300 rounded-md px-4 py-3 focus:outline-none focus:ring-2 focus:ring-orange-400"
                             required
                         />
@@ -54,6 +88,16 @@ function Login() {
                         >
                             Sign In
                         </button>
+
+                        <p className="text-sm">
+                            Don&apos;t have an account?{" "}
+                            <Link
+                                to="/signup"
+                                className="text-orange-500 hover:underline"
+                            >
+                                Sign Up
+                            </Link>
+                        </p>
                     </form>
                 </div>
 
