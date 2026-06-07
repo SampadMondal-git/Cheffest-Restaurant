@@ -1,11 +1,13 @@
 import express from 'express'
-import { postReview, deleteReview } from '../controllers/review.controller.js'
+import { postReview, deleteReview, getReviewsByItemId } from '../controllers/review.controller.js'
 import verifyJWT from '../middleware/verifyJWT.middleware.js'
 
 const router = express.Router()
 
-router.post("/:itemId", verifyJWT, postReview ) // chunks route
+router.get("/:itemId", getReviewsByItemId ) // get reviews by item ID
 
-router.delete("/:reviewId", verifyJWT, deleteReview ) // chunks route
+router.post("/:itemId", verifyJWT, postReview ) // add review
+
+router.delete("/:reviewId", verifyJWT, deleteReview ) // delete review
 
 export default router
