@@ -5,7 +5,7 @@ const userSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
-    number: {
+    phone: {
         type: String,
         required: true,
         unique: true,
@@ -20,10 +20,21 @@ const userSchema = new mongoose.Schema({
         minlength: 8,
         required: true,
     },
-    isAdmin: {
+    role: {
+        type: String,
+        enum: ["customer", "staff", "manager", "admin", "head-chef"],
+        default: "customer",
+    },
+    position: {
+        type: String,
+        enum: ["line-cook", "prep-cook", "kitchen-assistant", "dishwasher", "cashier", "waiter", "cleaner", "host",],
+        required: function () {
+            return this.role === "staff";
+        },
+    },
+    isFirstLogin: {
         type: Boolean,
-        required: true,
-        default: false,
+        default: true,
     },
     resetPasswordToken: String,
     resetPasswordExpire: Date,

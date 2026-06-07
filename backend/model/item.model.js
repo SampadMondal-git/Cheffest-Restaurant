@@ -15,21 +15,46 @@ const itemModel = new mongoose.Schema(
     price: {
       type: Number,
       required: true,
-      min: 0,
+      min: 1,
     },
     category: {
       type: String,
       required: true,
-      enum: ["starter", "main", "dessert", "drink"],
+      enum: ["starter", "main-course", "dessert", "drink"],
+    },
+    type: {
+      type: String,
+      enum: ["veg", "non-veg"],
+      required: function () {
+        return this.category === "starter" || this.category === "main-course";
+      },
     },
     images: {
-      type: [String],
+      type: [
+        {
+          secure_url: {
+            type: String,
+            required: true,
+          },
+          public_id: {
+            type: String,
+            required: true,
+          },
+        },
+      ],
       default: [],
     },
+
     tags: {
       type: [String],
+      required: true,
       default: [],
+      validate: {
+        validator: (tags) => Array.isArray(tags) && tags.length > 0,
+        message: "At least one tag is required",
+      },
     },
+
     isAvailable: {
       type: Boolean,
       default: true,
