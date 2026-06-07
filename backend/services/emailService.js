@@ -12,7 +12,7 @@ const transporter = nodemailer.createTransport({
     },
 });
 
-async function sendResetEmail(email, link) {
+async function sendResetEmail(email, link, subject = "Reset your password") {
   const templatePath = path.join(
     process.cwd(),
     "templates/resetPassword.template.html"
@@ -25,7 +25,7 @@ async function sendResetEmail(email, link) {
   await transporter.sendMail({
     from: `${process.env.WEBSITE_NAME} <${process.env.EMAIL_USER}>`,
     to: email,
-    subject: "Reset your password",
+    subject,
     html,
   });
 }
