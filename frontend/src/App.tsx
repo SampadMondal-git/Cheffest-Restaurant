@@ -1,9 +1,9 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { useEffect, useState } from "react";
 import Navbar from '../components/global/navbar'
 import Home from '../pages/Home'
 import About from '../pages/About'
 import Menu from '../pages/Menu'
+import AllItems from '../pages/AllItems'
 import Reservation from '../pages/Reservation'
 import Contact from '../pages/Contact'
 import Signup from '../pages/Signup'
@@ -23,69 +23,51 @@ import ReservationDetails from '../components/user/reservationDetails'
 import GetOrderByUserId from '../components/user/order'
 import ManageOrders from '../components/dashboard/manageOrders'
 import Users from '../components/dashboard/manageUsers'
+import ManageReservation from '../components/dashboard/manageReservation'
+import { CartProvider } from './contexts/CartContext';
+import CartPopup from '../components/global/CartPopup';
+import { ConfirmationProvider } from './contexts/ConfirmationContext';
+import ConfirmationModal from '../components/global/ConfirmationModal';
+import { AuthProvider } from './contexts/AuthContext';
 
 function App() {
-    const [token, setToken] = useState<string | null>(null);
-    const [user, setUser] = useState<any>(null);
-
-    useEffect(() => {
-        const storedToken = localStorage.getItem("token");
-        const storedUser = localStorage.getItem("user");
-        
-        if (storedToken) {
-            setToken(storedToken);
-        }
-        
-        if (storedUser) {
-            try {
-                setUser(JSON.parse(storedUser));
-            } catch (error) {
-                console.error("Failed to parse stored user:", error);
-                localStorage.removeItem("user");
-            }
-        }
-    }, []);
-
-    const handleLogin = (newToken: string, userData: any) => {
-        localStorage.setItem("token", newToken);
-        localStorage.setItem("user", JSON.stringify(userData));
-        setToken(newToken);
-        setUser(userData);
-    };
-
-    const handleLogout = () => {
-        localStorage.removeItem("token");
-        localStorage.removeItem("user");
-        setToken(null);
-        setUser(null);
-    };
     return (
         <BrowserRouter>
-            <Navbar token={token} user={user} onLogout={handleLogout} />
-            <Routes>
-                <Route path="/" element={<Home />} />
-                <Route path="/about" element={<About />} />
-                <Route path="/menu" element={<Menu />} />
-                <Route path="/reservation" element={<Reservation/>} />
-                <Route path="/contact" element={<Contact/>} />
-                <Route path="/signup" element={<Signup onLogin={handleLogin} />} />
-                <Route path="/login" element={<Login onLogin={handleLogin} />} />
-                <Route path="/forgot-password" element={<ForgotPassword/>} />
-                <Route path="/reset-password/:token" element={<ResetPassword/>} />
-                <Route path="/order-confirmation" element={<OrderConfirmation />} />
-                <Route path="/booking-confirmation" element={<BookingConfirmation />} />
-                <Route path="/feedback-confirmation" element={<FeedbackConfirmation />} />
-                <Route path="/*" element={<ErrorPage />} />
-                <Route path="/dashboard" element={<Dashboard />} />
-                <Route path="/items" element={<ManageItems />} />
-                <Route path="/profile" element={<Profile />} />
-                <Route path="/reservations" element={<GetReservationByUserToken />} />
-                <Route path="/reservations/:id" element={<ReservationDetails />} />
-                <Route path="/orders" element={<GetOrderByUserId />} />
-                <Route path="/manage-orders" element={<ManageOrders />} />
-                <Route path="/users" element={<Users />} />
-            </Routes>
-            <Footer />
+            <AuthProvider>
+                <ConfirmationProvider>
+                    <CartProvider>
+                        <Navbar />
+                        <CartPopup />
+                        <ConfirmationModal />
+                        <Routes>
+                            <Route path="/" element={<Home />} />
+                            <Route path="/about" element={<About />} />
+                            <Route path="/menu" element={<Menu />} />
+                            <Route path="/our-menu" element={<AllItems />} />
+                            <Route path="/reservation" element={<Reservation/>} />
+                            <Route path="/contact" element={<Contact/>} />
+                            <Route path="/signup" element={<Signup />} />
+                            <Route path="/login" element={<Login />} />
+                            <Route path="/forgot-password" element={<ForgotPassword/>} />
+                            <Route path="/reset-password/:token" element={<ResetPassword/>} />
+                            <Route path="/order-confirmation" element={<OrderConfirmation />} />
+                            <Route path="/booking-confirmation" element={<BookingConfirmation />} />
+                            <Route path="/feedback-confirmation" element={<FeedbackConfirmation />} />
+                            <Route path="/*" element={<ErrorPage />} />
+                            <Route path="/dashboard" element={<Dashboard />} />
+                            <Route path="/manage-items" element={<ManageItems />} />
+                            <Route path="/profile" element={<Profile />} />
+                            <Route path="/reservations" element={<GetReservationByUserToken />} />
+                            <Route path="/reservations/:id" element={<ReservationDetails />} />
+                            <Route path="/orders" element={<GetOrderByUserId />} />
+                            <Route path="/manage-orders" element={<ManageOrders />} />
+                            <Route path="/users" element={<Users />} />
+                            <Route path="/manage-reservations" element={<ManageReservation />} />
+                        </Routes>
+                        <Footer />
+                    </CartProvider>
+                </ConfirmationProvider>
+            </AuthProvider>
         </BrowserRouter>
     )
 }
