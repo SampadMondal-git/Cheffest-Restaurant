@@ -2,7 +2,7 @@ import express from "express";
 import verifyJWT from "../middleware/verifyJWT.middleware.js";
 import isAdmin from "../middleware/isAdmin.middleware.js";
 import allowRoles from "../middleware/role.middleware.js";
-import { getOrder, getOrderById, getOrderByUserId, addOrder, manageOrder, manageOrderPayment, getOrderStats } from "../controllers/order.controller.js";
+import { getOrder, getOrderById, getOrderByUserId, addOrder, manageOrder, cancelUserOrder, manageOrderPayment, getOrderStats } from "../controllers/order.controller.js";
 
 const router = express.Router();
 
@@ -17,6 +17,8 @@ router.get("/get-order-stats", isAdmin, getOrderStats);
 router.post("/add-order", verifyJWT, addOrder);
 
 router.patch("/manage-order/:id", verifyJWT, allowRoles("admin", "head-chef"), manageOrder);
+
+router.patch("/cancel-order/:id", verifyJWT, cancelUserOrder);
 
 router.patch("/manage-order-payment/:id", verifyJWT, allowRoles("admin", "cashier"), manageOrderPayment);
 
