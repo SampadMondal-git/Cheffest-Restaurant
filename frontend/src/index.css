@@ -62,3 +62,14 @@ body {
     -o-background-size: cover;
     background-size: cover;
 }
+
+.hide-modal-scroll {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE/Edge */
+}
+
+.hide-modal-scroll::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none;
+}
