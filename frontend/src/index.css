@@ -46,6 +46,17 @@ body {
     transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+.hide-scrollbar {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE/Edge */
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none;
+}
+
 .offer-icons img {
     filter: brightness(0) saturate(100%) invert(68%) sepia(38%) saturate(5604%) hue-rotate(1deg) brightness(106%) contrast(104%);
 }
