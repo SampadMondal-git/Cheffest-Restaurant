@@ -6,14 +6,14 @@ import Gallery from '../components/about/gallery'
 import Reservation from '../components/home/reservation'
 function About() {
     return (
-        <>
+        <div className="w-full overflow-x-hidden">
             <Base year={2017} />
             <Facilities />
             <Story />
             <Chef />
             <Gallery />
             <Reservation />
-        </>
+        </div>
     )
 }
 

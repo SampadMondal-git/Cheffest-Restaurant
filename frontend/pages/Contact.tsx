@@ -2,7 +2,9 @@ import ContactForm from '../components/contact/contact-form'
 
 function Contact() {
     return (
-        <ContactForm />
+        <div className="w-full overflow-x-hidden">
+            <ContactForm />
+        </div>
     )
 }
 

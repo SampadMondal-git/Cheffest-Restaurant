@@ -1,8 +1,7 @@
-import PopularDishes from '../components/menu/popular-dishes'
+import PopularDishes from '../components/menu/popular-dishes';
+
 function Menu() {
-  return (
-    <PopularDishes />
-  )
+  return <PopularDishes />;
 }
 
-export default Menu
+export default Menu;

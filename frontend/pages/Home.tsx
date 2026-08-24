@@ -13,15 +13,15 @@ function App() {
 }, []);
 
   return (
-    <>
-    <Welcome title="Cheffest" />
-    <Info />
-    <Story />
-    <Menu />
-    <Service />
-    <Testimonial />
-    <Reservation />
-    </>
+    <div className="w-full overflow-x-hidden">
+      <Welcome title="Cheffest" />
+      <Info />
+      <Story />
+      <Menu />
+      <Service />
+      <Testimonial />
+      <Reservation />
+    </div>
   )
 }
 

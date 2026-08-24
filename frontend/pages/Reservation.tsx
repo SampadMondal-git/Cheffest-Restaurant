@@ -3,10 +3,10 @@ import Gallery from '../components/about/gallery'
 
 function Reservation() {
     return (
-        <>
+        <div className="w-full overflow-x-hidden">
             <ReservationForm />
             <Gallery />
-        </>
+        </div>
     )
 }
 
