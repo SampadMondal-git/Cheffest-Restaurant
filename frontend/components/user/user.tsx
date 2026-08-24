@@ -1,5 +1,13 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
+import {
+  User,
+  LayoutDashboard,
+  ShoppingBag,
+  CalendarDays,
+  LogOut,
+} from "lucide-react";
+
 // ----------------------------------------------------------------------
 // Custom hook: detect clicks outside a given ref
 // ----------------------------------------------------------------------
@@ -27,7 +35,7 @@ const useClickOutside = (
 type DropdownItemProps = {
   label: string;
   onClick: () => void;
-  icon?: React.ReactNode;   // optional icon
+  icon?: React.ReactNode;
 };
 
 const DropdownItem: React.FC<DropdownItemProps> = ({ label, onClick, icon }) => {
@@ -74,16 +82,29 @@ const UserDropdown: React.FC<UserDropdownProps> = ({
   onDashboard,
 }) => {
   const navigate = useNavigate();
+
+  // Navigation handlers
   const handleProfile = () => {
     if (onProfile) {
       onProfile();
     } else {
       navigate("/profile");
     }
-  }
+  };
+
   const handleDashboard = () => {
     if (onDashboard) {
       onDashboard();
+      return;
+    }
+
+    const isCashier = user.role === "cashier" || (user.role === "staff" && user.position === "cashier");
+
+    // Route to different dashboards based on role
+    if (user.role === "head-chef") {
+      navigate("/headchef-dashboard");
+    } else if (isCashier) {
+      navigate("/cashier-dashboard");
     } else {
       navigate("/dashboard");
     }
@@ -95,7 +116,7 @@ const UserDropdown: React.FC<UserDropdownProps> = ({
     } else {
       navigate("/orders");
     }
-  }
+  };
 
   const getReservation = () => {
     if (onReservations) {
@@ -103,7 +124,7 @@ const UserDropdown: React.FC<UserDropdownProps> = ({
     } else {
       navigate("/reservations");
     }
-  }
+  };
 
   const [open, setOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -136,7 +157,8 @@ const UserDropdown: React.FC<UserDropdownProps> = ({
   const toggleDropdown = () => setOpen((prev) => !prev);
 
   // Get user initial for avatar fallback
-  const userInitial = user.name.charAt(0).toUpperCase();
+  const userInitial = (user.name || user.email || "User")[0]?.toUpperCase() || "U";
+  const userLabel = user.name || user.email || "User";
 
   return (
     <div className="relative inline-block" ref={dropdownRef}>
@@ -146,7 +168,7 @@ const UserDropdown: React.FC<UserDropdownProps> = ({
         aria-expanded={open}
         aria-haspopup="true"
         aria-label="User menu"
-        className="flex items-center justify-center w-10 h-10 rounded-full bg-[#ff9900] cursor-pointer hover:ring-0.5 hover:ring-offset-2 focus:outline-none transition-all duration-200 shadow-sm"
+        className="flex items-center justify-center w-10 h-10 rounded-full bg-[#ff9900] cursor-pointer focus:outline-none shadow-sm"
       >
         {user.avatarUrl ? (
           <img
@@ -159,7 +181,7 @@ const UserDropdown: React.FC<UserDropdownProps> = ({
         )}
       </button>
 
-      {/* Dropdown Menu with animation */}
+      {/* Dropdown Menu – always rendered, animated in AND out */}
       <div
         className={`
           absolute right-0 mt-3 w-64 origin-top-right
@@ -167,87 +189,64 @@ const UserDropdown: React.FC<UserDropdownProps> = ({
           ${open ? "opacity-100 scale-100 visible" : "opacity-0 scale-95 invisible"}
         `}
       >
-        {open && (
-          <div
-            ref={menuRef}
-            role="menu"
-            aria-orientation="vertical"
-            className="bg-white rounded-2xl shadow-xl ring-1 ring-black/5 divide-y divide-gray-100 focus:outline-none overflow-hidden"
-          >
-            {/* Profile section */}
-            <div className="px-4 py-3">
-              <p className="text-sm font-semibold text-gray-900">{user.name}</p>
-              <p className="text-xs text-gray-500 mt-0.5">{user.email}</p>
-            </div>
-
-            {/* Menu items */}
-            <div className="py-1">
-              <DropdownItem
-                label="Profile"
-                onClick={() => {
-                  handleProfile();
-                  setOpen(false);
-                }}
-                icon={
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                  </svg>
-                }
-              />
-              {user.role === "admin" && (
-                <DropdownItem
-                  label="Dashboard"
-                  onClick={() => {
-                    // replace with real handler
-                    handleDashboard();
-                    setOpen(false);
-                  }}
-                  icon={
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 13h8V3H3v10zm10 8h8v-6h-8v6zM3 21h8v-6H3v6zm10-8h8V3h-8v10z" />
-                    </svg>
-                  }
-                />
-              )}
-              <DropdownItem
-                label="Orders"
-                onClick={() => {
-                  getOrder();
-                  setOpen(false);
-                }}
-                icon={
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
-                  </svg>
-                }
-              />
-              <DropdownItem
-                label="Reservations"
-                onClick={() => {
-                  getReservation();
-                  setOpen(false);
-                }}
-                icon={
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                  </svg>
-                }
-              />
-              <DropdownItem
-                label="Logout"
-                onClick={() => {
-                  onLogout();
-                  setOpen(false);
-                }}
-                icon={
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                  </svg>
-                }
-              />
-            </div>
+        <div
+          ref={menuRef}
+          role="menu"
+          aria-orientation="vertical"
+          className="bg-white rounded-2xl shadow-xl ring-1 ring-black/5 divide-y divide-gray-100 focus:outline-none overflow-hidden"
+        >
+          {/* Profile section */}
+          <div className="px-4 py-3">
+            <p className="text-sm font-semibold text-gray-900">{userLabel}</p>
+            <p className="text-xs text-gray-500 mt-0.5">{user.email}</p>
           </div>
-        )}
+
+          {/* Menu items */}
+          <div className="py-1">
+            <DropdownItem
+              label="Profile"
+              onClick={() => {
+                handleProfile();
+                setOpen(false);
+              }}
+              icon={<User className="w-4 h-4" />}
+            />
+            {(user.role === "admin" || user.role === "head-chef" || user.role === "cashier" || (user.role === "staff" && user.position === "cashier")) && (
+              <DropdownItem
+                label="Dashboard"
+                onClick={() => {
+                  handleDashboard();
+                  setOpen(false);
+                }}
+                icon={<LayoutDashboard className="w-4 h-4" />}
+              />
+            )}
+            <DropdownItem
+              label="Orders"
+              onClick={() => {
+                getOrder();
+                setOpen(false);
+              }}
+              icon={<ShoppingBag className="w-4 h-4" />}
+            />
+            <DropdownItem
+              label="Reservations"
+              onClick={() => {
+                getReservation();
+                setOpen(false);
+              }}
+              icon={<CalendarDays className="w-4 h-4" />}
+            />
+            <DropdownItem
+              label="Logout"
+              onClick={() => {
+                onLogout();
+                setOpen(false);
+              }}
+              icon={<LogOut className="w-4 h-4" />}
+            />
+          </div>
+        </div>
       </div>
     </div>
   );
