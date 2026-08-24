@@ -6,9 +6,9 @@ import { getOrder, getOrderById, getOrderByUserId, addOrder, manageOrder, cancel
 
 const router = express.Router();
 
-router.get("/get-all-orders", verifyJWT, allowRoles("admin", "head-chef"), getOrder);
+router.get("/get-all-orders", verifyJWT, allowRoles("admin", "head-chef", "cashier"), getOrder);
 
-router.get("/get-order/:id", allowRoles("admin", "head-chef", "manager"), getOrderById);
+router.get("/get-order/:id", allowRoles("admin", "head-chef", "manager", "cashier"), getOrderById);
 
 router.get("/get-order-by-user-id", verifyJWT, getOrderByUserId);
 
