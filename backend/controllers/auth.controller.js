@@ -3,15 +3,16 @@ import bcrypt from "bcrypt";
 import crypto from "crypto";
 import validator from "validator";
 import generateToken from "../utils/generatesToken.js";
-import sendEmail from "../services/emailService.js";
+import sendResetEmail from "../services/emailService.js";
+import jwt from "jsonwebtoken";
 
 export const signup = async (req, res) => {
   // logic of signup route
   try {
-    const { name, email, number, password, confirmPassword, isAdmin } = req.body;
+    const { name, email, phone, password, confirmPassword, role, position } = req.body;
 
     // Required fields validation
-    if (!name || !email || !number || !password || !confirmPassword) {
+    if (!name || !email || !phone || !password || !confirmPassword) {
       return res.status(400).json({ message: "Missing required fields" });
     }
 
@@ -36,12 +37,12 @@ export const signup = async (req, res) => {
 
     // Number Validation
     const numberRegex = /^\d{10}$/;
-    if (!numberRegex.test(number)) {
+    if (!numberRegex.test(phone)) {
       return res.status(400).json({ message: "Number must be 10 digits" });
     }
 
     // User Validation (check by email or number)
-    const user = await userModel.findOne({ $or: [{ email }, { number }] });
+    const user = await userModel.findOne({ $or: [{ email }, { phone }] });
 
     if (user) {
       return res.status(400).json({ message: "User already exists", exist: true, data: user });
@@ -52,14 +53,24 @@ export const signup = async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, salt);
 
     // User Creation
-    const newUser = new userModel({ name, email: normalizedEmail, number, password: hashedPassword, isAdmin });
-
-    // Create JWT token
-    generateToken(newUser, res);
+    const newUser = new userModel({ name, email: normalizedEmail, phone, password: hashedPassword, role, position });
 
     await newUser.save();
 
-    return res.status(201).json({ message: "User created successfully", data: newUser });
+    // Create JWT token
+    const token = generateToken(newUser, res);
+
+    const safeUser = {
+      id: newUser._id,
+      name: newUser.name,
+      email: newUser.email,
+      phone: newUser.phone,
+      role: newUser.role,
+      position: newUser.position,
+      isFirstLogin: true,
+    };
+
+    return res.status(201).json({ message: "User created successfully", data: safeUser, token });
   } catch (error) {
     console.error("Signup error:", error);
     return res.status(500).json({ message: "Internal server error" });
@@ -69,7 +80,7 @@ export const signup = async (req, res) => {
 export const login = async (req, res) => {
   // logic of login route
   try {
-    const { identifier, password } = req.body;
+    const { identifier, password, rememberMe = false } = req.body;
 
     if (!identifier) {
       return res.status(400).json({ message: "Please provide your email or number" });
@@ -96,7 +107,7 @@ export const login = async (req, res) => {
       return res.status(400).json({ message: "Password must be at least 8 characters" });
     }
 
-    const user = await userModel.findOne({ $or: [{ email: identifier }, { number: identifier }] });
+    const user = await userModel.findOne({ $or: [{ email: identifier }, { phone: identifier }] });
 
     if (!user) {
       return res.status(401).json({ message: "User doesn't exist" });
@@ -108,10 +119,26 @@ export const login = async (req, res) => {
       return res.status(401).json({ message: "Incorrect password" });
     }
 
-    // Create JWT token
-    generateToken(user, res);
+    if (user.isFirstLogin) {
+      await userModel.findByIdAndUpdate(user._id, {
+        isFirstLogin: false
+      });
+    }
 
-    return res.status(200).json({ message: "Login successful", data: user });
+    // Create JWT token
+    const token = generateToken(user, res, rememberMe);
+
+    const safeUser = {
+      id: user._id,
+      name: user.name,
+      email: user.email,
+      phone: user.phone,
+      role: user.role,
+      position: user.position,
+      isFirstLogin: user.isFirstLogin,
+    };
+
+    return res.status(200).json({ message: "Login successful", data: safeUser, token });
   } catch (error) {
     console.error("Login error:", error);
     return res.status(500).json({ message: "Internal server error" });
@@ -123,7 +150,7 @@ export const logout = async (req, res) => {
   try {
     res.clearCookie("jwt", {
       httpOnly: true,
-      secure: true,
+      secure: process.env.NODE_ENV === "production",
       sameSite: "Strict",
       path: "/",
     });
@@ -160,12 +187,12 @@ export const forgotPassword = async (req, res) => {
 
     await user.save();
 
-    const resetPasswordUrl = `http://localhost:3000/reset-password/${token}`;
+    const resetPasswordUrl = `http://localhost:5173/reset-password/${token}`;
 
-    await sendEmail(
+    await sendResetEmail(
       email,
-      "Password Reset",
-      `Click the link below to reset your password: ${resetPasswordUrl}`
+      resetPasswordUrl,
+      "Password Reset - Cheffest"
     );
 
     return res.status(200).json({ message: "Password reset email sent successfully", data: user, token });
@@ -197,9 +224,10 @@ export const validateToken = async (req, res) => {
 export const resetPassword = async (req, res) => {
   // logic of reset password route
   try {
-    const { token, password, confirmPassword } = req.body;
+    const { token } = req.params;
+    const { password, confirmPassword } = req.body;
 
-    if (!token || !password || !confirmPassword) {
+    if (!password || !confirmPassword) {
       return res.status(400).json({ message: "Missing required fields" });
     }
 
@@ -232,3 +260,67 @@ export const resetPassword = async (req, res) => {
     return res.status(500).json({ message: "Internal server error" });
   }
 }
+
+export const getUserDetailsByToken = async (req, res) => {
+  try {
+    const token = req.headers.authorization?.split(" ")[1] || req.cookies.jwt;
+
+    if (!token) {
+      return res.status(401).json({ message: "Token missing" });
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
+
+    req.user = decoded;
+
+    if (!req.user.userId) {
+      return res.status(403).json({ message: "Invalid or expired token" });
+    }
+
+    const user = await userModel.findById(req.user.userId);
+
+    res.status(200).json({ data: user });
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+};
+
+export const updateUserDetailsByToken = async (req, res) => {
+  try {
+    const token = req.headers.authorization?.split(" ")[1] || req.cookies.jwt;
+
+    if (!token) {
+      return res.status(401).json({ message: "Token missing" });
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
+
+    req.user = decoded;
+
+    if (!req.user.userId) {
+      return res.status(403).json({ message: "Invalid or expired token" });
+    }
+
+    const user = await userModel.findById(req.user.userId);
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const { name, email, phone } = req.body;
+
+    if (!name && !email && !phone) {
+      return res.status(400).json({ message: "Missing required fields" });
+    }
+
+    const updatedUser = await userModel.findByIdAndUpdate(
+      req.user.userId,
+      { name, email, phone },
+      { returnDocument: "after" }
+    );
+
+    res.status(200).json({ data: updatedUser });
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+};
