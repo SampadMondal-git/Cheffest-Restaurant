@@ -5,6 +5,7 @@ import {
   logout as apiLogout,
 } from "../../api/authService";
 import { getUserDetailsByToken } from "../../api/manageUser";
+import Loader from "../../components/global/loader";
 
 type User = any;
 
@@ -33,12 +34,19 @@ const clearAuthStorage = () => {
   sessionStorage.removeItem("user");
 };
 
+const storeAuth = (authToken: string, authUser: User) => {
+  clearAuthStorage();
+  localStorage.setItem("token", authToken);
+  localStorage.setItem("user", JSON.stringify(authUser));
+};
+
 const getTokenExpiration = (token: string): number | null => {
   try {
     const payload = token.split(".")[1];
     if (!payload) return null;
     const normalized = payload.replace(/-/g, "+").replace(/_/g, "/");
-    const decoded = atob(normalized);
+    const padded = normalized.padEnd(normalized.length + ((4 - (normalized.length % 4)) % 4), "=");
+    const decoded = atob(padded);
     const parsed = JSON.parse(decoded);
     return parsed.exp ? parsed.exp * 1000 : null;
   } catch (err) {
@@ -67,20 +75,31 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     clearLogoutTimer();
   };
 
+  const expireAuth = () => {
+    clearAuth();
+    void apiLogout().catch((err) => {
+      console.error("Automatic logout error", err);
+    });
+  };
+
   const scheduleAutoLogout = (authToken: string) => {
     clearLogoutTimer();
     const expiration = getTokenExpiration(authToken);
     if (!expiration) return;
 
-    const delay = expiration - Date.now();
-    if (delay <= 0) {
-      clearAuth();
-      return;
-    }
+    const scheduleNextCheck = () => {
+      const remaining = expiration - Date.now();
+      if (remaining <= 0) {
+        expireAuth();
+        return;
+      }
 
-    logoutTimerRef.current = window.setTimeout(() => {
-      clearAuth();
-    }, delay);
+      // setTimeout overflows for delays longer than roughly 24.8 days.
+      const maxTimeoutDelay = 2_147_000_000;
+      logoutTimerRef.current = window.setTimeout(scheduleNextCheck, Math.min(remaining, maxTimeoutDelay));
+    };
+
+    scheduleNextCheck();
   };
 
   useEffect(() => {
@@ -140,15 +159,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const res = await apiLogin(identifier, password, rememberMe);
       setToken(res.token);
       setUser(res.data);
+      storeAuth(res.token, res.data);
       scheduleAutoLogout(res.token);
-
-      if (rememberMe) {
-        localStorage.setItem("token", res.token);
-        localStorage.setItem("user", JSON.stringify(res.data));
-      } else {
-        sessionStorage.setItem("token", res.token);
-        sessionStorage.setItem("user", JSON.stringify(res.data));
-      }
     } finally {
       setLoading(false);
     }
@@ -166,9 +178,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const res = await apiSignup(name, phone, email, password, confirmPassword);
       setToken(res.token);
       setUser(res.data);
+      storeAuth(res.token, res.data);
       scheduleAutoLogout(res.token);
-      localStorage.setItem("token", res.token);
-      localStorage.setItem("user", JSON.stringify(res.data));
     } finally {
       setLoading(false);
     }
@@ -195,7 +206,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     logout: doLogout,
   };
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider value={value}>
+      {loading ? <Loader fullPage message="Preparing your experience..." /> : children}
+    </AuthContext.Provider>
+  );
 };
 
 export const useAuth = (): AuthContextType => {
