@@ -86,3 +86,18 @@ export const deleteReview = async (req, res) => {
         res.status(500).json({ message: "Internal server error" });
     }
 };
+
+export const getReviewsByItemId = async (req, res) => {
+    try {
+        const { itemId } = req.params;
+
+        const reviews = await Review.find({ item: itemId })
+            .populate("user", "name email")
+            .sort({ createdAt: -1 });
+
+        res.status(200).json({ data: reviews });
+    } catch (error) {
+        console.error("Get reviews error:", error);
+        res.status(500).json({ message: "Internal server error" });
+    }
+};
