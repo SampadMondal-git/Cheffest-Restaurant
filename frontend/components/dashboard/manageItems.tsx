@@ -212,6 +212,7 @@ function ManageItems() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [editingItem, setEditingItem] = useState<Item | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Item | null>(null);
+  const [deleting, setDeleting] = useState(false);
   const [selectedItem, setSelectedItem] = useState<Item | null>(null);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [reviews, setReviews] = useState<Review[]>([]);
@@ -404,6 +405,7 @@ function ManageItems() {
 
   const handleDelete = async () => {
     if (!deleteTarget) return;
+    setDeleting(true);
     try {
       await deleteItem(deleteTarget._id);
       setItems((prev) => prev.filter((item) => item._id !== deleteTarget._id));
@@ -411,6 +413,8 @@ function ManageItems() {
     } catch (err) {
       console.error("Delete failed", err);
       alert("Failed to delete item");
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -775,7 +779,7 @@ function ManageItems() {
               </h2>
               <button
                 onClick={closePanel}
-                className="p-2 rounded-full hover:bg-gray-100 transition-colors"
+                className="p-2 rounded-full hover:bg-gray-100 transition-colors cursor-pointer"
               >
                 <X size={20} />
               </button>
@@ -936,26 +940,34 @@ function ManageItems() {
       {deleteTarget && (
         <div className="fixed inset-0 bg-black/30 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6">
-            <h3 className="text-lg font-bold text-gray-800 mb-2">Delete Item</h3>
-            <p className="text-gray-600 mb-6">
-              Are you sure you want to delete{" "}
-              <span className="font-semibold text-gray-800">{deleteTarget.name}</span>?
-              This action cannot be undone.
-            </p>
-            <div className="flex justify-end gap-3">
-              <button
-                onClick={() => setDeleteTarget(null)}
-                className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg font-medium transition cursor-pointer"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleDelete}
-                className="px-6 py-2 bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg shadow-lg shadow-red-200 transition cursor-pointer"
-              >
-                Delete
-              </button>
-            </div>
+            {deleting ? (
+              <Loader message="Deleting item..." />
+            ) : (
+              <>
+                <h3 className="text-lg font-bold text-gray-800 mb-2">Delete Item</h3>
+                <p className="text-gray-600 mb-6">
+                  Are you sure you want to delete{" "}
+                  <span className="font-semibold text-gray-800">{deleteTarget.name}</span>?
+                  This action cannot be undone.
+                </p>
+                <div className="flex justify-end gap-3">
+                  <button
+                    onClick={() => setDeleteTarget(null)}
+                    disabled={deleting}
+                    className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg font-medium transition disabled:opacity-50 cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleDelete}
+                    disabled={deleting}
+                    className="px-6 py-2 bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg shadow-lg shadow-red-200 transition disabled:opacity-70 cursor-pointer"
+                  >
+                    Delete
+                  </button>
+                </div>
+              </>
+            )}
           </div>
         </div>
       )}
