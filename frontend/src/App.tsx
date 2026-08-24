@@ -56,37 +56,37 @@ function App() {
                         <Navbar />
                         <CartPopup />
                         <ConfirmationModal />
-                                                <main className="w-full overflow-x-hidden">
-                                                        <Suspense fallback={<Loader fullPage message="Preparing your experience..." />}>
-                                                            <Routes>
-                                <Route path="/" element={<Home />} />
-                                <Route path="/about" element={<About />} />
-                                <Route path="/menu" element={<Menu />} />
-                                <Route path="/our-menu" element={<AllItems />} />
-                                <Route path="/reservation" element={<Reservation />} />
-                                <Route path="/contact" element={<Contact />} />
-                                <Route path="/signup" element={<Signup />} />
-                                <Route path="/login" element={<Login />} />
-                                <Route path="/forgot-password" element={<ForgotPassword />} />
-                                <Route path="/reset-password/:token" element={<ResetPassword />} />
-                                <Route path="/order-confirmation" element={<OrderConfirmation />} />
-                                <Route path="/booking-confirmation" element={<BookingConfirmation />} />
-                                <Route path="/feedback-confirmation" element={<FeedbackConfirmation />} />
-                                <Route path="/*" element={<ErrorPage />} />
-                                <Route path="/dashboard" element={<Dashboard />} />
-                                <Route path="/revenue-dashboard" element={<RevenueDashboard />} />
-                                <Route path="/manage-items" element={<ManageItems />} />
-                                <Route path="/profile" element={<Profile />} />
-                                <Route path="/reservations" element={<GetReservationByUserToken />} />
-                                <Route path="/reservations/:id" element={<ReservationDetails />} />
-                                <Route path="/orders" element={<GetOrderByUserId />} />
-                                <Route path="/manage-orders" element={<ManageOrders />} />
-                                <Route path="/cashier-dashboard" element={<CashierDashboard />} />
-                                <Route path="/headchef-dashboard" element={<HeadChefDashboard />} />
-                                <Route path="/users" element={<Users />} />
-                                <Route path="/manage-reservations" element={<ManageReservation />} />
-                                                            </Routes>
-                                                        </Suspense>
+                        <main className="w-full overflow-x-hidden">
+                            <Suspense fallback={<Loader fullPage message="Preparing your experience..." />}>
+                                <Routes>
+                                    <Route path="/" element={<Home />} />
+                                    <Route path="/about" element={<About />} />
+                                    <Route path="/menu" element={<Menu />} />
+                                    <Route path="/our-menu" element={<AllItems />} />
+                                    <Route path="/reservation" element={<Reservation />} />
+                                    <Route path="/contact" element={<Contact />} />
+                                    <Route path="/signup" element={<Signup />} />
+                                    <Route path="/login" element={<Login />} />
+                                    <Route path="/forgot-password" element={<ForgotPassword />} />
+                                    <Route path="/reset-password/:token" element={<ResetPassword />} />
+                                    <Route path="/order-confirmation" element={<OrderConfirmation />} />
+                                    <Route path="/booking-confirmation" element={<BookingConfirmation />} />
+                                    <Route path="/feedback-confirmation" element={<FeedbackConfirmation />} />
+                                    <Route path="/*" element={<ErrorPage />} />
+                                    <Route path="/dashboard" element={<Dashboard />} />
+                                    <Route path="/revenue-dashboard" element={<RevenueDashboard />} />
+                                    <Route path="/manage-items" element={<ManageItems />} />
+                                    <Route path="/profile" element={<Profile />} />
+                                    <Route path="/reservations" element={<GetReservationByUserToken />} />
+                                    <Route path="/reservations/:id" element={<ReservationDetails />} />
+                                    <Route path="/orders" element={<GetOrderByUserId />} />
+                                    <Route path="/manage-orders" element={<ManageOrders />} />
+                                    <Route path="/cashier-dashboard" element={<CashierDashboard />} />
+                                    <Route path="/headchef-dashboard" element={<HeadChefDashboard />} />
+                                    <Route path="/users" element={<Users />} />
+                                    <Route path="/manage-reservations" element={<ManageReservation />} />
+                                </Routes>
+                            </Suspense>
                         </main>
                         <Footer />
                     </CartProvider>
