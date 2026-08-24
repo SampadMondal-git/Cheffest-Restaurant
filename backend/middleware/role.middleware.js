@@ -8,14 +8,18 @@ const allowRoles = (...allowedRoles) => {
       };
     }
 
-    const userRole = req.user.role || "guest";
+    const rawRole = req.user.role || "guest";
+    const position = req.user.position || null;
 
-    if (!allowedRoles.includes(userRole)) {
+    const normalizedRole = rawRole === "staff" && position === "cashier" ? "cashier" : rawRole;
+
+    if (!allowedRoles.includes(normalizedRole)) {
       return res.status(403).json({
         message: "Forbidden: Access denied",
       });
     }
 
+    req.user.effectiveRole = normalizedRole;
     next();
   };
 };
