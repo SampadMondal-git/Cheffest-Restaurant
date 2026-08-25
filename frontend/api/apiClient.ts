@@ -4,8 +4,12 @@ const getStoredToken = () => {
   return localStorage.getItem("token") || sessionStorage.getItem("token") || null;
 };
 
+const apiBaseUrl = (import.meta as unknown as {
+  env: { VITE_API_URL: string };
+}).env.VITE_API_URL;
+
 export const apiClient = axios.create({
-  baseURL: "http://localhost:5000",
+  baseURL: apiBaseUrl,
   withCredentials: true,
 });
 
@@ -13,10 +17,7 @@ apiClient.interceptors.request.use((config) => {
   const token = getStoredToken();
 
   if (token) {
-    config.headers = {
-      ...(config.headers || {}),
-      Authorization: `Bearer ${token}`,
-    } as any;
+    config.headers.Authorization = `Bearer ${token}`;
   }
 
   return config;

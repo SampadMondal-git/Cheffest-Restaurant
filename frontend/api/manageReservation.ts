@@ -3,7 +3,7 @@ import apiClient from "./apiClient";
 export const BookTable = async (
   name: string,
   email: string,
-  person: Number,
+  person: number,
   time: string,
   date: string,
 ) => {
@@ -29,7 +29,7 @@ export const BookTableForm = async (
   name: string,
   email: string,
   phone: string,
-  person: Number,
+  person: number,
   time: string,
   date: string,
 ) => {

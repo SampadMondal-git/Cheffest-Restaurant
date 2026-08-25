@@ -1,4 +1,4 @@
-import axios from "axios";
+import apiClient from "./apiClient";
 
 type FeedbackDate = {
   name: string;
@@ -9,8 +9,8 @@ type FeedbackDate = {
 };
 
 const sendFeedback = async (data: FeedbackDate) => {
-  const response = await axios.post(
-    "http://localhost:5000/contact/add-contact",
+  const response = await apiClient.post(
+    "/contact/add-contact",
     data,
     {
       withCredentials: true,

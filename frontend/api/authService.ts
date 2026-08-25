@@ -1,4 +1,4 @@
-import axios from "axios";
+import apiClient from "./apiClient";
 
 interface SignupResponse {
   message: string;
@@ -20,8 +20,8 @@ export const signup = async (
   password: string,
   confirmPassword: string,
 ): Promise<SignupResponse> => {
-  const response = await axios.post<SignupResponse>(
-    "http://localhost:5000/signup",
+  const response = await apiClient.post<SignupResponse>(
+    "/signup",
     {
       name,
       phone,
@@ -58,8 +58,8 @@ export const login = async (
   password: string,
   rememberMe: boolean,
 ): Promise<LoginResponse> => {
-  const response = await axios.post<LoginResponse>(
-    "http://localhost:5000/login",
+  const response = await apiClient.post<LoginResponse>(
+    "/login",
     {
       identifier,
       password,
@@ -81,8 +81,8 @@ type LogoutResponse = {
 };
 
 export const logout = async (): Promise<LogoutResponse> => {
-  const response = await axios.post<LogoutResponse>(
-    "http://localhost:5000/logout",
+  const response = await apiClient.post<LogoutResponse>(
+    "/logout",
     {},
     {
       withCredentials: true,
@@ -93,8 +93,8 @@ export const logout = async (): Promise<LogoutResponse> => {
 };
 
 export const forgotPassword = async (email: string): Promise<void> => {
-  const response = await axios.post<void>(
-    "http://localhost:5000/forgot-password",
+  const response = await apiClient.post<void>(
+    "/forgot-password",
     {
       email,
     },
@@ -105,7 +105,7 @@ export const forgotPassword = async (email: string): Promise<void> => {
 
 export const validateToken = async (token: string): Promise<boolean> => {
   try {
-    await axios.get(`http://localhost:5000/validate-token/${token}`);
+    await apiClient.get(`/validate-token/${token}`);
     return true; // 200 means valid
   } catch (error: any) {
     if (error.response?.status === 400) {
@@ -120,8 +120,8 @@ export const resetPassword = async (
   password: string,
   confirmPassword: string,
 ): Promise<void> => {
-  const response = await axios.post<void>(
-    `http://localhost:5000/reset-password/${token}`,
+  const response = await apiClient.post<void>(
+    `/reset-password/${token}`,
     {
       password,
       confirmPassword,
