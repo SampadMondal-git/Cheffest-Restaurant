@@ -1,10 +1,21 @@
-import { useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import logo from "../../src/assets/logo.png";
 import UserDropdown from "../user/user";
 import { ShoppingCart, Home, Info, Utensils, Calendar, Phone } from "lucide-react";
 import { useCart } from "../../src/contexts/CartContext";
 import { useAuth } from "../../src/contexts/AuthContext";
+
+// Define the type for navigation links
+type NavLinkItem = {
+  name: string;
+  path: string;
+  icon: typeof Home; // Lucide icon component
+};
+
+// Props for MobileBottomNav
+interface MobileBottomNavProps {
+  links: NavLinkItem[];
+}
 
 function MobileTopBar() {
   const { itemCount, toggle } = useCart();
@@ -55,7 +66,7 @@ function MobileTopBar() {
   );
 }
 
-function MobileBottomNav({ links }) {
+function MobileBottomNav({ links }: MobileBottomNavProps) {
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50 border-t border-white/10 bg-black/95 shadow-[0_-8px_30px_rgba(0,0,0,0.25)] backdrop-blur-xl md:hidden">
       <div className="mx-auto flex max-w-7xl items-center justify-around px-2 py-1.5">
@@ -85,9 +96,8 @@ function Navbar() {
   const navigate = useNavigate();
   const { itemCount, toggle } = useCart();
   const { user, token, logout } = useAuth();
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-  const links = [
+  const links: NavLinkItem[] = [
     { name: "Home", path: "/", icon: Home },
     { name: "About", path: "/about", icon: Info },
     { name: "Menu", path: "/menu", icon: Utensils },
@@ -98,14 +108,16 @@ function Navbar() {
   const handleLogout = async () => {
     try {
       await logout();
-      setIsMenuOpen(false);
       navigate("/login");
     } catch (err) {
       console.error(err);
     }
   };
 
-  const handleLinkClick = () => setIsMenuOpen(false);
+  // Removed unused `isMenuOpen` (if present in your file, delete it)
+  // const isMenuOpen = ... // <- remove this line
+
+  const handleLinkClick = () => undefined;
 
   const renderDesktopLinks = () => (
     <>
@@ -166,9 +178,7 @@ function Navbar() {
           </NavLink>
 
           <div className="hidden items-center gap-6 text-white uppercase tracking-wide md:flex">
-            <ul className="flex items-center gap-6">
-              {renderDesktopLinks()}
-            </ul>
+            <ul className="flex items-center gap-6">{renderDesktopLinks()}</ul>
           </div>
 
           <MobileTopBar />
@@ -176,8 +186,6 @@ function Navbar() {
       </nav>
 
       <MobileBottomNav links={links} />
-
-      {/* <div className="h-14 md:hidden" /> */}
     </>
   );
 }
