@@ -30,8 +30,9 @@ interface Order {
     user: string;
     createdAt: string;
     updatedAt: string;
-    cgst?: number;
-    sgst?: number;
+    serviceCharge?: number;
+    cGst?: number;
+    sGst?: number;
     gst?: number;
 }
 
@@ -72,13 +73,13 @@ function ManageOrders() {
         );
     };
 
-    const GST_RATE = 0.18;
+    const GST_RATE = 0.05;
     const CGST_RATE = GST_RATE / 2;
     const SGST_RATE = GST_RATE / 2;
 
     const getTaxBreakdown = (order: Order) => {
-        if (order.cgst !== undefined && order.sgst !== undefined) {
-            return { cgst: order.cgst || 0, sgst: order.sgst || 0 };
+        if (order.cGst !== undefined && order.sGst !== undefined) {
+            return { cgst: order.cGst || 0, sgst: order.sGst || 0 };
         }
         if (order.gst !== undefined) {
             const totalGst = order.gst || 0;
@@ -640,35 +641,13 @@ function ManageOrders() {
                                     </div>
                                     <button
                                         onClick={clearDateFilter}
-                                        className="text-sm text-gray-500 hover:text-red-500 underline cursor-pointer"
+                                        className="text-sm text-gray-500 hover:text-[#ff9900] underline cursor-pointer"
                                     >
                                         Clear
                                     </button>
                                 </div>
                             )}
                         </div>
-
-                        {selectedStatus && (
-                            <button
-                                onClick={() => setSelectedStatus(null)}
-                                className="mt-3 text-sm text-[#ff9900] font-semibold hover:underline flex items-center gap-0.5 cursor-pointer"
-                            >
-                                <svg
-                                    className="w-4 h-4"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                >
-                                    <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth="2"
-                                        d="M6 18L18 6M6 6l12 12"
-                                    />
-                                </svg>
-                                Clear filter
-                            </button>
-                        )}
                     </div>
                 )}
 
@@ -728,7 +707,7 @@ function ManageOrders() {
                             </div>
                         ) : (
                             filteredOrders.map((order) => {
-                                const total = getOrderTotal(order);
+                                const total = order.totalAmount;
                                 const tax = getTaxBreakdown(order);
                                 return (
                                     <div
@@ -842,7 +821,7 @@ function ManageOrders() {
                                                 <span>
                                                     CGST (
                                                     {(CGST_RATE * 100).toFixed(
-                                                        0
+                                                        1
                                                     )}
                                                     %)
                                                 </span>
@@ -854,12 +833,18 @@ function ManageOrders() {
                                                 <span>
                                                     SGST (
                                                     {(SGST_RATE * 100).toFixed(
-                                                        0
+                                                        1
                                                     )}
                                                     %)
                                                 </span>
                                                 <span>
                                                     ₹{tax.sgst.toFixed(2)}
+                                                </span>
+                                            </div>
+                                            <div className="mt-1 flex justify-between text-sm text-gray-600">
+                                                <span>Service Charge (10%)</span>
+                                                <span>
+                                                    ₹{(order.serviceCharge || 0).toFixed(2)}
                                                 </span>
                                             </div>
 
@@ -1003,7 +988,7 @@ function ManageOrders() {
                                         {selectedOrder.status}
                                     </span>
                                     <div className="px-4 py-1.5 bg-gray-50 rounded-full text-sm font-semibold text-gray-700">
-                                        ₹{getOrderTotal(selectedOrder)}
+                                        ₹{selectedOrder.totalAmount}
                                     </div>
                                     {selectedOrder.payment[0]?.method && (
                                         <div className="px-4 py-1.5 bg-gray-50 rounded-full text-sm font-semibold text-gray-700 capitalize">
@@ -1049,7 +1034,7 @@ function ManageOrders() {
                                                     <span>
                                                         CGST (
                                                         {(CGST_RATE * 100).toFixed(
-                                                            0
+                                                            1
                                                         )}
                                                         %)
                                                     </span>
@@ -1061,12 +1046,18 @@ function ManageOrders() {
                                                     <span>
                                                         SGST (
                                                         {(SGST_RATE * 100).toFixed(
-                                                            0
+                                                            1
                                                         )}
                                                         %)
                                                     </span>
                                                     <span>
                                                         ₹{tax.sgst.toFixed(2)}
+                                                    </span>
+                                                </div>
+                                                <div className="mt-0.5 flex justify-between text-sm text-gray-600">
+                                                    <span>Service Charge (10%)</span>
+                                                    <span>
+                                                        ₹{(selectedOrder.serviceCharge || 0).toFixed(2)}
                                                     </span>
                                                 </div>
                                             </>
@@ -1078,7 +1069,7 @@ function ManageOrders() {
                                             Total
                                         </span>
                                         <span className="font-bold text-gray-900">
-                                            ₹{getOrderTotal(selectedOrder)}
+                                            ₹{selectedOrder.totalAmount}
                                         </span>
                                     </div>
                                 </div>
