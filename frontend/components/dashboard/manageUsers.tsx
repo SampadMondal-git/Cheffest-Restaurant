@@ -629,7 +629,7 @@ function ManageUsers() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1">Phone</label>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">Phone *</label>
                 <input
                   type="text"
                   value={formData.phone}
