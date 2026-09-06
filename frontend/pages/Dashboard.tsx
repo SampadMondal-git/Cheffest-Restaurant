@@ -68,11 +68,19 @@ const Dashboard: React.FC = () => {
     cancelled: 0,
   });
 
+  const getLocalDateKey = (dateValue: string | Date): string => {
+    const date = new Date(dateValue);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  };
+
   React.useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const today = new Date().toISOString().split("T")[0];
+        const today = getLocalDateKey(new Date());
 
         const results = await Promise.allSettled([
           getAllUsers(),
@@ -118,14 +126,14 @@ const Dashboard: React.FC = () => {
         const pendingTodayCount = allOrders.filter(
           (o) =>
             o.status === "pending" &&
-            new Date(o.createdAt).toISOString().split("T")[0] === today
+            getLocalDateKey(o.createdAt) === today
         ).length;
         setTodayPendingOrders(pendingTodayCount);
 
          const servedTodayCount = allOrders.filter(
            (o) =>
              o.status === "served" &&
-             new Date(o.createdAt).toISOString().split("T")[0] === today
+             getLocalDateKey(o.createdAt) === today
          ).length;
          setTodayServedOrders(servedTodayCount);
 
@@ -133,13 +141,13 @@ const Dashboard: React.FC = () => {
           .filter(
             (o) =>
               o.status === "served" &&
-              new Date(o.createdAt).toISOString().split("T")[0] === today
+              getLocalDateKey(o.createdAt) === today
           )
           .reduce((sum, o) => sum + (o.totalAmount || 0), 0);
         setTodayRevenue(todayRevenueAmount);
 
         const todaysOrders = allOrders.filter(
-          (o) => new Date(o.createdAt).toISOString().split("T")[0] === today
+          (o) => getLocalDateKey(o.createdAt) === today
         );
         const inProgressStatuses = ["accepted", "preparing"];
         setTodayOrderBreakdown({
