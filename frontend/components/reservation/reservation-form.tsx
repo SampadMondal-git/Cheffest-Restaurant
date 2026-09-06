@@ -1,16 +1,17 @@
 import { useState, useRef, useEffect } from "react";
+import axios from "axios";
 import { BookTableForm } from "../../api/manageReservation";
 import { useConfirmation } from "../../src/contexts/useConfirmation";
 import {
   User, Mail, Phone, Calendar, Clock, BookOpen,
-  ChevronLeft, ChevronRight,
+  ChevronLeft, ChevronRight, X, XCircle,
 } from "lucide-react";
 
 /* ---------- Date Picker Component ---------- */
 function DatePicker({
   value,
   onChange,
-  required: _required = false,
+  required = false,
 }: {
   value: string;
   onChange: (date: string) => void;
@@ -22,7 +23,6 @@ function DatePicker({
   );
   const ref = useRef<HTMLDivElement>(null);
 
-  // close on outside click
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
@@ -37,7 +37,7 @@ function DatePicker({
   today.setHours(0, 0, 0, 0);
 
   const daysInMonth = new Date(year, month + 1, 0).getDate();
-  const firstDay = new Date(year, month, 1).getDay(); // Sunday = 0
+  const firstDay = new Date(year, month, 1).getDay();
   const days = Array.from({ length: daysInMonth }, (_, i) => i + 1);
 
   const changeMonth = (delta: number) =>
@@ -59,6 +59,7 @@ function DatePicker({
       <button
         type="button"
         onClick={() => setOpen(!open)}
+        aria-required={required}
         className={`w-full pl-10 pr-4 py-3 text-left border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-400 transition ${value ? "text-gray-800" : "text-gray-400"
           }`}
       >
@@ -116,11 +117,11 @@ function DatePicker({
   );
 }
 
-/* ---------- Time Picker Component (independent scrolling) ---------- */
+/* ---------- Time Picker Component ---------- */
 function TimePicker({
   value,
   onChange,
-  required: _required = false,
+  required = false,
 }: {
   value: string;
   onChange: (time: string) => void;
@@ -137,7 +138,6 @@ function TimePicker({
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
-  // Parse current time or default to 12:00
   let hour = 12,
     minute = 0;
   if (value) {
@@ -163,6 +163,7 @@ function TimePicker({
       <button
         type="button"
         onClick={() => setOpen(!open)}
+        aria-required={required}
         className={`w-full pl-10 pr-4 py-3 text-left border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-400 transition ${value ? "text-gray-800" : "text-gray-400"
           }`}
       >
@@ -173,7 +174,6 @@ function TimePicker({
       {open && (
         <div className="absolute z-20 mt-2 w-auto min-w-full max-w-[calc(100vw-2rem)] bg-white border border-gray-200 rounded-xl shadow-2xl p-3 left-0">
           <div className="flex gap-2">
-            {/* Hour column – scrolls independently */}
             <div className="flex-1">
               <p className="text-xs font-medium text-gray-400 mb-2 text-center">Hour</p>
               <div className="max-h-48 overflow-y-auto space-y-1 pr-1 scrollbar-thin scrollbar-thumb-gray-300">
@@ -192,8 +192,6 @@ function TimePicker({
                 ))}
               </div>
             </div>
-
-            {/* Minute column – scrolls independently */}
             <div className="flex-1">
               <p className="text-xs font-medium text-gray-400 mb-2 text-center">Minute</p>
               <div className="max-h-48 overflow-y-auto space-y-1 pr-1 scrollbar-thin scrollbar-thumb-gray-300">
@@ -219,6 +217,42 @@ function TimePicker({
   );
 }
 
+/* ---------- Error Toast (only errors, no extra background) ---------- */
+function ErrorToast({
+  message,
+  onDismiss,
+}: {
+  message: string;
+  onDismiss: () => void;
+}) {
+  // Auto-dismiss after 5 seconds
+  useEffect(() => {
+    const timer = setTimeout(onDismiss, 5000);
+    return () => clearTimeout(timer);
+  }, [onDismiss]);
+
+  return (
+    <div
+      role="alert"
+      className="fixed top-6 left-1/2 z-50 flex w-[min(92vw,420px)] -translate-x-1/2 items-start gap-3 rounded-xl border border-red-200 bg-white p-4 text-[#ff9900] shadow-2xl"
+    >
+      <XCircle className="mt-0.5 h-6 w-6 shrink-0 text-[#ff9900]" />
+      <div className="flex-1">
+        <p className="font-medium">Reservation failed</p>
+        <p className="mt-1 text-sm text-gray-600">{message}</p>
+      </div>
+      <button
+        type="button"
+        onClick={onDismiss}
+        aria-label="Close error notification"
+        className="rounded-md p-1 text-gray-400 transition hover:bg-gray-100 hover:text-gray-700 cursor-pointer"
+      >
+        <X className="h-5 w-5" />
+      </button>
+    </div>
+  );
+}
+
 /* ---------- Main Reservation Form ---------- */
 function ReservationForm() {
   const [name, setName] = useState('');
@@ -227,14 +261,22 @@ function ReservationForm() {
   const [date, setDate] = useState('');
   const [time, setTime] = useState('');
   const [person, setPerson] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorToast, setErrorToast] = useState<string | null>(null);
 
   const { setType } = useConfirmation();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!date || !time) {
+      setErrorToast("Please select a date and time for your reservation.");
+      return;
+    }
+
+    setIsSubmitting(true);
     try {
-      const response = await BookTableForm(name, email, phone, Number(person), time, date);
-      console.log(response);
+      await BookTableForm(name, email, phone, Number(person), time, date);
       setName('');
       setEmail('');
       setPhone('');
@@ -242,17 +284,32 @@ function ReservationForm() {
       setTime('');
       setDate('');
       setType("booking");
+      // No success toast – just clear the form and redirect
     } catch (error) {
-      console.error(error);
+      let message = "Unable to book your table. Please try again.";
+      if (axios.isAxiosError(error)) {
+        message = error.response?.data?.message || "Unable to reach the reservation server.";
+      } else if (error instanceof Error) {
+        message = error.message;
+      }
+      setErrorToast(message);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   return (
     <div className="flex w-full flex-col items-center justify-center px-4 py-8 text-center sm:px-6 lg:px-8">
+      {errorToast && (
+        <ErrorToast
+          message={errorToast}
+          onDismiss={() => setErrorToast(null)}
+        />
+      )}
+
       <h3 className="relative uppercase text-[#ff9900] w-fit px-8 py-2 tracking-[0.32em]">
         <span className="absolute left-0 top-0 h-px w-10 bg-[#ff9900]" />
         <span className="absolute right-0 bottom-0 h-px w-10 bg-[#ff9900]" />
-
         <span className="relative flex items-center gap-4">
           <span className="h-1.5 w-1.5 rotate-45 bg-[#ff9900]" />
           <span className="text-lg font-bold tracking-[0.3em]">
@@ -285,12 +342,10 @@ function ReservationForm() {
             <div className="relative flex h-9 w-9 items-center justify-center rounded-full border border-[#ff9900]/50">
               <span className="h-2 w-2 rounded-full bg-[#ff9900] shadow-[0_0_12px_rgba(255,153,0,0.7)]" />
             </div>
-
             <div>
               <h3 className="text-lg font-bold uppercase tracking-[0.2em] text-start text-[#ff9900]">
                 Book Now
               </h3>
-
               <span className="mt-1 block text-[11px] uppercase tracking-[0.3em] text-gray-400">
                 Your table awaits
               </span>
@@ -355,22 +410,23 @@ function ReservationForm() {
                 />
               </div>
 
-              {/* Date picker - custom */}
+              {/* Date picker */}
               <div className="col-span-1">
                 <DatePicker value={date} onChange={setDate} required />
               </div>
 
-              {/* Time picker - custom */}
+              {/* Time picker */}
               <div className="col-span-1">
                 <TimePicker value={time} onChange={setTime} required />
               </div>
 
               <button
                 type="submit"
-                className="mt-4 flex items-center justify-center gap-2 rounded-md bg-[#ff9900] py-3 font-semibold text-white transition hover:bg-[#ff8800] sm:col-span-2 cursor-pointer"
+                disabled={isSubmitting}
+                className="mt-4 flex items-center justify-center gap-2 rounded-md bg-[#ff9900] py-3 font-semibold text-white transition hover:bg-[#ff8800] disabled:cursor-not-allowed disabled:opacity-60 sm:col-span-2 cursor-pointer"
               >
                 <BookOpen className="w-5 h-5" />
-                Book a Table
+                {isSubmitting ? 'Booking...' : 'Book a Table'}
               </button>
             </form>
           </div>
