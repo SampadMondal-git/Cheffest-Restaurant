@@ -1,21 +1,15 @@
 import { NavLink, useNavigate } from "react-router-dom";
 import logo from "../../src/assets/logo.png";
 import UserDropdown from "../user/user";
-import { ShoppingCart, Home, Info, Utensils, Calendar, Phone } from "lucide-react";
+import { ShoppingCart, Home, Info, Utensils, Calendar, Phone, type LucideIcon } from "lucide-react";
 import { useCart } from "../../src/contexts/CartContext";
 import { useAuth } from "../../src/contexts/AuthContext";
 
-// Define the type for navigation links
-type NavLinkItem = {
+type NavItem = {
   name: string;
   path: string;
-  icon: typeof Home; // Lucide icon component
+  icon: LucideIcon;
 };
-
-// Props for MobileBottomNav
-interface MobileBottomNavProps {
-  links: NavLinkItem[];
-}
 
 function MobileTopBar() {
   const { itemCount, toggle } = useCart();
@@ -66,7 +60,7 @@ function MobileTopBar() {
   );
 }
 
-function MobileBottomNav({ links }: MobileBottomNavProps) {
+function MobileBottomNav({ links }: { links: NavItem[] }) {
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50 border-t border-white/10 bg-black/95 shadow-[0_-8px_30px_rgba(0,0,0,0.25)] backdrop-blur-xl md:hidden">
       <div className="mx-auto flex max-w-7xl items-center justify-around px-2 py-1.5">
@@ -97,7 +91,7 @@ function Navbar() {
   const { itemCount, toggle } = useCart();
   const { user, token, logout } = useAuth();
 
-  const links: NavLinkItem[] = [
+  const links: NavItem[] = [
     { name: "Home", path: "/", icon: Home },
     { name: "About", path: "/about", icon: Info },
     { name: "Menu", path: "/menu", icon: Utensils },
@@ -114,18 +108,12 @@ function Navbar() {
     }
   };
 
-  // Removed unused `isMenuOpen` (if present in your file, delete it)
-  // const isMenuOpen = ... // <- remove this line
-
-  const handleLinkClick = () => undefined;
-
   const renderDesktopLinks = () => (
     <>
       {links.map((link) => (
         <li key={link.name}>
           <NavLink
             to={link.path}
-            onClick={handleLinkClick}
             className={({ isActive }) =>
               `transition-all duration-300 cursor-pointer ${
                 isActive ? "text-[#ff9900]" : "text-white/90 hover:text-[#ff9900]"
@@ -159,7 +147,6 @@ function Navbar() {
         ) : (
           <NavLink
             to="/login"
-            onClick={handleLinkClick}
             className="inline-flex items-center rounded-full bg-[#ff9900] px-5 py-2.5 text-sm font-bold uppercase text-black transition-all duration-300 hover:bg-[#e88c02]"
           >
             Login
@@ -173,12 +160,14 @@ function Navbar() {
     <>
       <nav className="sticky top-0 z-50 border-b border-white/10 bg-black/95 shadow-[0_8px_30px_rgba(0,0,0,0.25)] backdrop-blur-xl">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-2.5 sm:px-6 lg:px-8">
-          <NavLink to="/" onClick={handleLinkClick} className="hidden md:block">
+          <NavLink to="/" className="hidden md:block">
             <img src={logo} alt="Logo" className="h-16 cursor-pointer sm:h-20" />
           </NavLink>
 
           <div className="hidden items-center gap-6 text-white uppercase tracking-wide md:flex">
-            <ul className="flex items-center gap-6">{renderDesktopLinks()}</ul>
+            <ul className="flex items-center gap-6">
+              {renderDesktopLinks()}
+            </ul>
           </div>
 
           <MobileTopBar />
@@ -186,6 +175,8 @@ function Navbar() {
       </nav>
 
       <MobileBottomNav links={links} />
+
+      {/* <div className="h-14 md:hidden" /> */}
     </>
   );
 }
