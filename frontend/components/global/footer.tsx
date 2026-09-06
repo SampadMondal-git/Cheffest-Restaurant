@@ -91,7 +91,7 @@ function Footer() {
             </footer>
 
             {/* Copyright – unchanged */}
-            <div className="bg-black text-white pb-6 pt-3 border-t border-[#ff9900]/30">
+            <div className="bg-black text-white pb-20 pt-3 border-t border-[#ff9900]/30 md:pb-6">
                 <p className="text-center text-xs sm:text-sm md:text-base px-4 tracking-wide">
                     Copyright &copy; <span className="text-[#ff9900] font-semibold">Cheffest</span>{" "}
                     {new Date().getFullYear()} | Designed by{" "}
