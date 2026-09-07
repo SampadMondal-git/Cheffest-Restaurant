@@ -1,6 +1,7 @@
 import { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { getReservationByUserToken } from "../../api/manageReservation";
+import Loader from "../global/loader";
 
 interface Reservation {
   _id: string;
@@ -12,16 +13,23 @@ interface Reservation {
   status?: string;    // "cancelled", "upcoming", etc.
 }
 
-type ReservationStatus = "past" | "present" | "future" | "cancelled";
+type ReservationStatus = "past" | "today" | "active" | "future" | "cancelled";
 
 const Reservations = () => {
   const [reservations, setReservations] = useState<Reservation[]>([]);
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
     const fetchData = async () => {
-      const res = await getReservationByUserToken();
-      setReservations(res.data);
+      try {
+        const res = await getReservationByUserToken();
+        setReservations(Array.isArray(res.data) ? res.data : []);
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setLoading(false);
+      }
     };
     fetchData();
   }, []);
@@ -35,14 +43,20 @@ const Reservations = () => {
 
     // Otherwise, determine based on date
     const [year, month, day] = reservation.date.split("-").map(Number);
-    const reservationDate = new Date(year, month - 1, day); // local midnight
+    const [hour, minute] = reservation.time.split(":").map(Number);
+    const reservationDate = new Date(year, month - 1, day, hour, minute);
 
     const today = new Date();
-    today.setHours(0, 0, 0, 0); // local midnight today
+    const todayDate = new Date(today);
+    todayDate.setHours(0, 0, 0, 0);
 
-    if (reservationDate < today) return "past";
-    if (reservationDate > today) return "future";
-    return "present"; // same day → "Today"
+    if (reservationDate < today) {
+      const activeUntil = new Date(reservationDate.getTime() + 60 * 60 * 1000);
+      return today < activeUntil ? "active" : "past";
+    }
+
+    if (reservationDate.toDateString() !== todayDate.toDateString()) return "future";
+    return "today";
   };
 
   // Enrich reservations with status and sort
@@ -52,9 +66,14 @@ const Reservations = () => {
       status: getReservationStatus(r),
     }));
 
-    // Sort: future first, then present, then future, then past, then cancelled
-    const order = { future: 0, present: 1, past: 2, cancelled: 3 };
-    return enriched.sort((a, b) => order[a.status as ReservationStatus] - order[b.status as ReservationStatus]);
+    // Sort upcoming reservations by the nearest date and time.
+    const order = { active: 0, today: 1, future: 2, past: 3, cancelled: 4 };
+    return enriched.sort((a, b) => {
+      const statusDifference = order[a.status as ReservationStatus] - order[b.status as ReservationStatus];
+      if (statusDifference !== 0) return statusDifference;
+
+      return new Date(`${a.date}T${a.time}`).getTime() - new Date(`${b.date}T${b.time}`).getTime();
+    });
   }, [reservations]);
 
   const formatDate = (isoDate: string) => {
@@ -73,17 +92,23 @@ const Reservations = () => {
     ReservationStatus,
     { label: string; bg: string; border: string; text: string }
   > = {
+    today: {
+      label: "Today",
+      bg: "bg-blue-50",
+      border: "border-blue-300",
+      text: "text-blue-700",
+    },
+    active: {
+      label: "Active",
+      bg: "bg-green-50",
+      border: "border-green-300",
+      text: "text-green-700",
+    },
     past: {
       label: "Past",
       bg: "bg-gray-100",
       border: "border-gray-300",
       text: "text-gray-500",
-    },
-    present: {
-      label: "Today",
-      bg: "bg-green-50",
-      border: "border-green-300",
-      text: "text-green-700",
     },
     future: {
       label: "Upcoming",
@@ -98,6 +123,10 @@ const Reservations = () => {
       text: "text-red-600",
     },
   };
+
+  if (loading) {
+    return <Loader fullPage message="Loading your reservations..." />;
+  }
 
   return (
     <div className="min-h-[65vh] bg-linear-to-br from-[#fffaf3] to-[#ffe8c8] relative overflow-hidden px-6 md:px-12 lg:px-20 py-12">
