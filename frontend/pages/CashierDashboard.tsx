@@ -176,6 +176,7 @@ export default function CashierDashboard() {
   return (
     <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,rgba(255,153,0,0.18),transparent_25%),linear-gradient(135deg,#fffaf3_0%,#ffe8c8_100%)] px-4 py-6 md:px-6 lg:px-8">
       <div className="mx-auto flex max-w-7xl flex-col gap-6">
+        {/* Header */}
         <div className="overflow-hidden rounded-[28px] border border-orange-100 bg-white/90 p-6 shadow-[0_20px_60px_-20px_rgba(255,153,0,0.35)] backdrop-blur md:p-8">
           <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
             <div className="space-y-3">
@@ -204,6 +205,7 @@ export default function CashierDashboard() {
           </div>
         </div>
 
+        {/* Stats */}
         <div className="grid gap-4 md:grid-cols-3">
           <div className="rounded-2xl border border-orange-100 bg-white p-4 shadow-sm">
             <p className="text-sm text-gray-500">Paid</p>
@@ -219,6 +221,7 @@ export default function CashierDashboard() {
           </div>
         </div>
 
+        {/* Search */}
         <div className="rounded-3xl border border-orange-100 bg-white/90 p-4 shadow-sm backdrop-blur md:p-5">
           <div className="relative">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
@@ -257,16 +260,24 @@ export default function CashierDashboard() {
             {filteredOrders.map((order) => {
               const paymentStatus = order.payment?.[0]?.status ?? "pending";
               const paymentStyle = PAYMENT_STYLES[paymentStatus] || PAYMENT_STYLES.pending;
-              const selectedStatus = pendingChange?.orderId === order._id ? pendingChange.newStatus : paymentStatus;
+              const currentMethod =
+                order.payment?.[0]?.method && order.payment[0].method !== "not selected"
+                  ? order.payment[0].method
+                  : "cash";
 
               return (
-                <div key={order._id} className="rounded-3xl border border-orange-100 bg-white p-5 shadow-sm transition hover:shadow-md">
+                <div
+                  key={order._id}
+                  className="overflow-visible rounded-3xl border border-orange-100 bg-white p-5 shadow-sm transition hover:shadow-md"
+                >
                   <div className="mb-4 flex items-start justify-between gap-3">
                     <div>
                       <h3 className="text-lg font-semibold text-gray-900">{order.orderNumber}</h3>
                       <p className="mt-1 text-sm text-gray-500">Table {order.tableNumber}</p>
                     </div>
-                    <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold ${paymentStyle.bg} ${paymentStyle.text}`}>
+                    <span
+                      className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold ${paymentStyle.bg} ${paymentStyle.text}`}
+                    >
                       {paymentStyle.icon}
                       {paymentStatus.charAt(0).toUpperCase() + paymentStatus.slice(1)}
                     </span>
@@ -287,34 +298,46 @@ export default function CashierDashboard() {
                     </div>
                   </div>
 
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-500">Payment method</span>
-                    <span className="text-sm font-semibold text-gray-900 capitalize">
-                      {order.payment?.[0]?.method ? PAYMENT_METHOD_LABELS[order.payment[0].method] ?? order.payment[0].method : "N/A"}
-                    </span>
-                  </div>
-
+                  {/* ---------- NEW: Status Buttons instead of dropdown ---------- */}
                   <div className="mt-4">
-                    <CustomSelect
-                      label="Update payment"
-                      value={selectedStatus}
-                      options={PAYMENT_STATUS_OPTIONS.map((status) => ({
-                        value: status,
-                        label: status.charAt(0).toUpperCase() + status.slice(1),
-                        description: paymentStatus === status ? "Current payment state" : `Mark as ${status}`,
-                      }))}
-                      onChange={(value) =>
-                        handlePaymentSelection(
-                          order._id,
-                          order.orderNumber,
-                          value,
-                          order.payment?.[0]?.method && order.payment[0].method !== "not selected"
-                            ? order.payment[0].method
-                            : "cash"
-                        )
-                      }
-                    />
+                    <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                      Update payment
+                    </span>
+                    <div className="mt-2 grid grid-cols-3 gap-2">
+                      {PAYMENT_STATUS_OPTIONS.map((status) => {
+                        const isActive = paymentStatus === status;
+                        const isSelected = pendingChange?.orderId === order._id && pendingChange.newStatus === status;
+                        const style = PAYMENT_STYLES[status];
+                        const isHighlighted = isActive || isSelected;
+
+                        return (
+                          <button
+                            key={status}
+                            onClick={() =>
+                              handlePaymentSelection(
+                                order._id,
+                                order.orderNumber,
+                                status,
+                                currentMethod
+                              )
+                            }
+                            className={`flex items-center justify-center gap-1.5 rounded-xl border-2 px-3 py-2 text-sm font-semibold transition-all cursor-pointer ${
+                              isHighlighted
+                                ? `${style.bg} ${style.text} border-current shadow-sm`
+                                : "bg-gray-50 text-gray-400 border-gray-200 hover:border-gray-300 hover:bg-gray-100"
+                            }`}
+                          >
+                            {style.icon}
+                            {status.charAt(0).toUpperCase() + status.slice(1)}
+                          </button>
+                        );
+                      })}
+                    </div>
+                    <div className="mt-1 text-xs text-gray-400 text-center">
+                      Current method: {PAYMENT_METHOD_LABELS[currentMethod] ?? currentMethod}
+                    </div>
                   </div>
+                  {/* -------------------------------------------------------------- */}
                 </div>
               );
             })}
@@ -322,6 +345,7 @@ export default function CashierDashboard() {
         )}
       </div>
 
+      {/* Confirmation Modal (unchanged, still uses CustomSelect for method) */}
       {pendingChange && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
           <div className="w-full max-w-md rounded-3xl border border-orange-100 bg-white p-6 shadow-2xl">
@@ -330,21 +354,25 @@ export default function CashierDashboard() {
               <h3 className="text-lg font-semibold text-gray-900">Confirm payment change</h3>
             </div>
             <p className="text-sm text-gray-600">
-              Mark <span className="font-semibold text-gray-900">{pendingChange.orderNumber}</span> as <span className="font-semibold text-[#ff9900]">{pendingChange.newStatus.charAt(0).toUpperCase() + pendingChange.newStatus.slice(1)}</span>?
+              Mark <span className="font-semibold text-gray-900">{pendingChange.orderNumber}</span> as{" "}
+              <span className="font-semibold text-[#ff9900]">
+                {pendingChange.newStatus.charAt(0).toUpperCase() + pendingChange.newStatus.slice(1)}
+              </span>
+              ?
             </p>
 
             {pendingChange.newStatus === "paid" && (
-              <div className="mt-4">
+              <div className="relative w-full mt-4">
                 <CustomSelect
                   label="Payment method"
                   value={pendingChange.paymentMethod ?? "cash"}
                   options={PAYMENT_METHOD_OPTIONS.map((method) => ({
                     value: method,
-                    label: PAYMENT_METHOD_LABELS[method],
+                    label: `${method.charAt(0).toUpperCase() + method.slice(1)}`,
                     description:
                       pendingChange.paymentMethod === method
-                        ? "Selected method"
-                        : `Use ${PAYMENT_METHOD_LABELS[method]}`,
+                        ? "Selected"
+                        : `Use ${method}`,
                   }))}
                   onChange={handlePaymentMethodChange}
                 />
