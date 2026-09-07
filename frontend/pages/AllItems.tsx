@@ -29,7 +29,7 @@ type ItemImage = {
 
 type Review = {
   _id: string;
-  user: {
+  user?: {
     _id: string;
     name: string;
     email: string;
@@ -259,7 +259,7 @@ const ReviewsSection = ({
                     </div>
                   </div>
                 </div>
-                {review.user.name && (
+                {review.user?.name && (
                   <p className="text-xs text-gray-600 leading-relaxed">{review.user.name}</p>
                 )}
                 <div className="text-xs text-gray-400 mt-1">
