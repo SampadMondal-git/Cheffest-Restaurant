@@ -77,6 +77,16 @@ const Orders = () => {
     const [cancelError, setCancelError] = useState<string | null>(null);
     const [cancelSuccess, setCancelSuccess] = useState<string | null>(null);
 
+    useEffect(() => {
+        if (!cancelSuccess) return;
+
+        const timeoutId = window.setTimeout(() => {
+            setCancelSuccess(null);
+        }, 3000);
+
+        return () => window.clearTimeout(timeoutId);
+    }, [cancelSuccess]);
+
     const closeCancelModal = () => {
         setCancelTarget(null);
         setCancelError(null);
