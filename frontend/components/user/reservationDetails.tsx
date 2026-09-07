@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { AlertTriangle, X } from "lucide-react";
 import { fetchReservation, updateReservation } from "../../api/manageReservation";
 
 const EditReservation = () => {
@@ -22,6 +23,7 @@ const EditReservation = () => {
     const [isPast, setIsPast] = useState(false); // NEW: track if reservation is in the past
     const [isEditLocked, setIsEditLocked] = useState(false);
     const [isActive, setIsActive] = useState(false);
+    const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -94,16 +96,12 @@ const EditReservation = () => {
     };
 
     const handleCancel = async () => {
-        if (!window.confirm("Are you sure you want to cancel this reservation? This action cannot be undone.")) {
-            return;
-        }
-
         setCancelling(true);
         setError(null);
         try {
             await updateReservation(id!, { status: "cancelled" });
             setStatus("cancelled");
-            alert("Reservation cancelled.");
+            setIsCancelModalOpen(false);
             navigate("/reservations");
         } catch (err: any) {
             console.error(err);
@@ -325,7 +323,7 @@ const EditReservation = () => {
                             <div className="mt-8 pt-6 border-t border-gray-200/60">
                                 <button
                                     type="button"
-                                    onClick={handleCancel}
+                                    onClick={() => setIsCancelModalOpen(true)}
                                     disabled={cancelling || isActive}
                                     className="w-full py-3 px-6 bg-red-50 border border-red-200 rounded-xl font-medium text-red-700 cursor-pointer hover:bg-red-100 transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                                 >
@@ -348,6 +346,59 @@ const EditReservation = () => {
                     )}
                 </div>
             </div>
+
+            {isCancelModalOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center px-4" role="dialog" aria-modal="true" aria-labelledby="cancel-reservation-title">
+                    <button
+                        type="button"
+                        aria-label="Close cancellation dialog"
+                        className="absolute inset-0 cursor-default bg-black/50 backdrop-blur-sm"
+                        onClick={() => setIsCancelModalOpen(false)}
+                    />
+                    <div className="relative z-10 w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl">
+                        <button
+                            type="button"
+                            aria-label="Close cancellation dialog"
+                            className="absolute right-4 top-4 rounded-full p-2 text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-800 cursor-pointer"
+                            onClick={() => setIsCancelModalOpen(false)}
+                            disabled={cancelling}
+                        >
+                            <X className="h-5 w-5" />
+                        </button>
+                        <div className="flex items-start gap-4 pr-8">
+                            <div className="rounded-full bg-red-100 p-3 text-red-600">
+                                <AlertTriangle className="h-6 w-6" />
+                            </div>
+                            <div>
+                                <h2 id="cancel-reservation-title" className="text-xl font-bold text-gray-900">
+                                    Cancel reservation?
+                                </h2>
+                                <p className="mt-2 text-sm leading-6 text-gray-600">
+                                    This action cannot be undone. Are you sure you want to cancel this reservation?
+                                </p>
+                            </div>
+                        </div>
+                        <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+                            <button
+                                type="button"
+                                onClick={() => setIsCancelModalOpen(false)}
+                                disabled={cancelling}
+                                className="rounded-xl border border-gray-300 px-5 py-3 font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-70 cursor-pointer"
+                            >
+                                Keep Reservation
+                            </button>
+                            <button
+                                type="button"
+                                onClick={handleCancel}
+                                disabled={cancelling}
+                                className="rounded-xl bg-red-600 px-5 py-3 font-semibold text-white transition-colors hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-70 cursor-pointer"
+                            >
+                                {cancelling ? "Cancelling..." : "Yes, Cancel Reservation"}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
