@@ -5,7 +5,7 @@ import generateOrderNumber from "../utils/generateOrderNumber.js";
 
 export const getOrder = async (req, res) => {
   try {
-    const orders = await orderModel.find();
+    const orders = await orderModel.find().sort({ createdAt: -1 });
     res.status(200).json({ data: orders });
   } catch (error) {
     res.status(400).json({ message: error.message });
@@ -23,7 +23,10 @@ export const getOrderById = async (req, res) => {
 
 export const getOrderByUserId = async (req, res) => {
   try {
-    const orders = await orderModel.find({ user: req.user.userId }).populate("items.item");
+    const orders = await orderModel
+      .find({ user: req.user.userId })
+      .sort({ createdAt: -1 })
+      .populate("items.item");
     res.status(200).json({ data: orders });
   } catch (error) {
     res.status(400).json({ message: error.message });
@@ -153,7 +156,7 @@ export const addOrder = async (req, res) => {
       sGst,
       serviceCharge,
       totalAmount: finalAmount,
-      payment: [{ method: paymentMethod || 'cash', status: 'paid' }],
+      payment: [{ method: paymentMethod || 'not selected', status: 'pending' }],
       orderType: orderType || 'dine-in',
       // ...(payment.status === "paid" && {
       //   paidAt: new Date().toISOString(),
