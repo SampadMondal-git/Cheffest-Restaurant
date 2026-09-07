@@ -6,7 +6,7 @@ import { bookReservation, getReservationByUserToken, fetchReservationById, updat
 
 const router = express.Router();
 
-router.post("/add-reservation", bookReservation); // Public booking; user is optional
+router.post("/add-reservation", verifyJWT, bookReservation);
 
 router.get("/get-reservation-by-user", verifyJWT, getReservationByUserToken); // chunks route
 
