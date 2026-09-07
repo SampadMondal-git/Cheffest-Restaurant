@@ -20,6 +20,8 @@ const EditReservation = () => {
     const [cancelling, setCancelling] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [isPast, setIsPast] = useState(false); // NEW: track if reservation is in the past
+    const [isEditLocked, setIsEditLocked] = useState(false);
+    const [isActive, setIsActive] = useState(false);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -45,7 +47,18 @@ const EditReservation = () => {
                     const [hour, minute] = data.time.split(":").map(Number);
                     const reservationDateTime = new Date(year, month - 1, day, hour, minute);
                     const now = new Date();
-                    if (reservationDateTime < now) {
+                    const editLockStarts = new Date(reservationDateTime.getTime() - 60 * 60 * 1000);
+                    const activeUntil = new Date(reservationDateTime.getTime() + 60 * 60 * 1000);
+
+                    if (now >= editLockStarts) {
+                        setIsEditLocked(true);
+                    }
+
+                    if (now >= reservationDateTime && now < activeUntil) {
+                        setIsActive(true);
+                    }
+
+                    if (now >= activeUntil) {
                         setIsPast(true);
                     }
                 }
@@ -130,7 +143,9 @@ const EditReservation = () => {
                                 ? "Cancelled"
                                 : isPast
                                     ? "Past"
-                                    : "Active"}
+                                    : isEditLocked
+                                        ? "Active"
+                                        : "Upcoming"}
                         </span>
                     </div>
                 )}
@@ -195,6 +210,7 @@ const EditReservation = () => {
                                         name="name"
                                         value={form.name}
                                         onChange={handleChange}
+                                        disabled={isEditLocked}
                                         placeholder="Full name"
                                         className="w-full border border-gray-300 rounded-xl px-5 py-3.5 text-gray-800 placeholder-gray-400 bg-white/90 focus:outline-none focus:ring-2 focus:ring-[#ff9900] focus:border-transparent transition-all"
                                         required
@@ -210,6 +226,7 @@ const EditReservation = () => {
                                         type="email"
                                         value={form.email}
                                         onChange={handleChange}
+                                        disabled={isEditLocked}
                                         placeholder="Email address"
                                         className="w-full border border-gray-300 rounded-xl px-5 py-3.5 text-gray-800 placeholder-gray-400 bg-white/90 focus:outline-none focus:ring-2 focus:ring-[#ff9900] focus:border-transparent transition-all"
                                         required
@@ -225,6 +242,7 @@ const EditReservation = () => {
                                         type="tel"
                                         value={form.phone}
                                         onChange={handleChange}
+                                        disabled={isEditLocked}
                                         placeholder="Phone number (optional)"
                                         className="w-full border border-gray-300 rounded-xl px-5 py-3.5 text-gray-800 placeholder-gray-400 bg-white/90 focus:outline-none focus:ring-2 focus:ring-[#ff9900] focus:border-transparent transition-all"
                                     />
@@ -240,6 +258,7 @@ const EditReservation = () => {
                                             name="date"
                                             value={form.date}
                                             onChange={handleChange}
+                                            disabled={isEditLocked}
                                             className="w-full border border-gray-300 rounded-xl px-5 py-3.5 text-gray-800 bg-white/90 focus:outline-none focus:ring-2 focus:ring-[#ff9900] focus:border-transparent transition-all"
                                             required
                                         />
@@ -253,6 +272,7 @@ const EditReservation = () => {
                                             name="time"
                                             value={form.time}
                                             onChange={handleChange}
+                                            disabled={isEditLocked}
                                             className="w-full border border-gray-300 rounded-xl px-5 py-3.5 text-gray-800 bg-white/90 focus:outline-none focus:ring-2 focus:ring-[#ff9900] focus:border-transparent transition-all"
                                             required
                                         />
@@ -268,6 +288,7 @@ const EditReservation = () => {
                                         name="person"
                                         value={form.person}
                                         onChange={handleChange}
+                                        disabled={isEditLocked}
                                         min={1}
                                         className="w-full border border-gray-300 rounded-xl px-5 py-3.5 text-gray-800 bg-white/90 focus:outline-none focus:ring-2 focus:ring-[#ff9900] focus:border-transparent transition-all"
                                         required
@@ -275,13 +296,15 @@ const EditReservation = () => {
                                 </div>
 
                                 <div className="flex flex-col sm:flex-row gap-4 pt-4">
-                                    <button
-                                        type="submit"
-                                        disabled={loading}
-                                        className="flex-1 py-3 px-6 bg-[#ff9900] text-white font-semibold rounded-xl cursor-pointer hover:bg-[#ff8800] transition-all duration-200 shadow-md hover:shadow-lg disabled:opacity-70 disabled:cursor-not-allowed"
-                                    >
-                                        {loading ? "Updating..." : "Update Reservation"}
-                                    </button>
+                                    {!isEditLocked && (
+                                        <button
+                                            type="submit"
+                                            disabled={loading}
+                                            className="flex-1 py-3 px-6 bg-[#ff9900] text-white font-semibold rounded-xl cursor-pointer hover:bg-[#ff8800] transition-all duration-200 shadow-md hover:shadow-lg disabled:opacity-70 disabled:cursor-not-allowed"
+                                        >
+                                            {loading ? "Updating..." : "Update Reservation"}
+                                        </button>
+                                    )}
 
                                     <button
                                         type="button"
@@ -293,20 +316,32 @@ const EditReservation = () => {
                                 </div>
                             </form>
 
+                            {isEditLocked && (
+                                <p className="mt-6 text-center text-sm text-gray-600">
+                                    Changes are locked within one hour of the reservation. You can still cancel it.
+                                </p>
+                            )}
+
                             <div className="mt-8 pt-6 border-t border-gray-200/60">
                                 <button
                                     type="button"
                                     onClick={handleCancel}
-                                    disabled={cancelling}
+                                    disabled={cancelling || isActive}
                                     className="w-full py-3 px-6 bg-red-50 border border-red-200 rounded-xl font-medium text-red-700 cursor-pointer hover:bg-red-100 transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                                 >
                                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
                                     </svg>
-                                    {cancelling ? "Cancelling..." : "Cancel This Reservation"}
+                                    {cancelling
+                                        ? "Cancelling..."
+                                        : isActive
+                                            ? "Cannot Cancel Active Reservation"
+                                            : "Cancel This Reservation"}
                                 </button>
                                 <p className="text-xs text-gray-500 text-center mt-3">
-                                    Cancelling is permanent and cannot be undone.
+                                    {isActive
+                                        ? "Active reservations cannot be cancelled."
+                                        : "Cancelling is permanent and cannot be undone."}
                                 </p>
                             </div>
                         </>
