@@ -1,4 +1,5 @@
 import reservationModel from "../model/reservation.model.js";
+import userModel from "../model/user.model.js";
 import jwt from "jsonwebtoken";
 
 export const bookReservation = async (req, res) => {
@@ -49,7 +50,23 @@ export const getReservationByUserToken = async (req, res) => {
       return res.status(403).json({ message: "Invalid or expired token" });
     }
 
-    const reservations = await reservationModel.find({ user: req.user.userId });
+    const user = await userModel.findById(req.user.userId).select("email");
+
+    if (!user) {
+      return res.status(403).json({ message: "User not found" });
+    }
+
+    const reservations = await reservationModel.find({
+      $or: [
+        { user: req.user.userId },
+        { user: { $exists: false }, email: user.email },
+      ],
+    });
+
+    await reservationModel.updateMany(
+      { user: { $exists: false }, email: user.email },
+      { $set: { user: req.user.userId } },
+    );
 
     res.status(200).json({ data: reservations });
   } catch (error) {
@@ -119,12 +136,31 @@ export const updateReservation = async (req, res) => {
       return res.status(404).json({ message: "Reservation not found" });
     }
 
-    // ❗ Handle cancel
+    const [year, month, day] = reservation.date.split("-").map(Number);
+    const [hour, minute] = reservation.time.split(":").map(Number);
+    const reservationDateTime = new Date(year, month - 1, day, hour, minute);
+    const activeUntil = new Date(reservationDateTime.getTime() + 60 * 60 * 1000);
+
+    if (status === "cancelled" && new Date() >= reservationDateTime && new Date() < activeUntil) {
+      return res.status(400).json({
+        message: "Active reservations cannot be cancelled",
+      });
+    }
+
+    // Cancellation remains available before the active reservation window.
     if (status === "cancelled") {
       reservation.status = "cancelled";
       await reservation.save();
 
       return res.status(200).json(reservation);
+    }
+
+    const editLockStarts = new Date(reservationDateTime.getTime() - 60 * 60 * 1000);
+
+    if (new Date() >= editLockStarts) {
+      return res.status(400).json({
+        message: "Reservation changes are locked within one hour of the reservation",
+      });
     }
 
     // ✅ Validate time (your requirement)
