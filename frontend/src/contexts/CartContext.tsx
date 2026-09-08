@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useRef, useState } from "react";
-import { useAuth } from "./AuthContext";
+import { useAuth } from "./useAuth";
 import * as cartAPI from "../../api/cart";
 
 type AuthUser = {

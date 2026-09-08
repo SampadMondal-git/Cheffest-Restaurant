@@ -1,6 +1,6 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useState, useEffect, useCallback } from "react";
-import { useAuth } from "../src/contexts/AuthContext";
+import { useAuth } from "../src/contexts/useAuth";
 
 const Signup = () => {
   const [name, setName] = useState("");

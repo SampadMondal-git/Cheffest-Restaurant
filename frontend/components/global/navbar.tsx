@@ -3,7 +3,7 @@ import logo from "../../src/assets/logo.png";
 import UserDropdown from "../user/user";
 import { ShoppingCart, Home, Info, Utensils, Calendar, Phone, type LucideIcon } from "lucide-react";
 import { useCart } from "../../src/contexts/CartContext";
-import { useAuth } from "../../src/contexts/AuthContext";
+import { useAuth } from "../../src/contexts/useAuth";
 
 type NavItem = {
   name: string;

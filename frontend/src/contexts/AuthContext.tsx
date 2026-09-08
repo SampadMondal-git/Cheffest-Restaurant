@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useRef, useState } from "react";
+import React, { createContext, useCallback, useEffect, useRef, useState } from "react";
 import {
   login as apiLogin,
   signup as apiSignup,
@@ -7,7 +7,16 @@ import {
 import { getUserDetailsByToken } from "../../api/manageUser";
 import Loader from "../../components/global/loader";
 
-type User = any;
+export type User = {
+  id: string;
+  _id?: string;
+  name: string;
+  email: string;
+  phone: string;
+  role: string;
+  position?: string;
+  [key: string]: unknown;
+};
 
 type AuthContextType = {
   user: User | null;
@@ -61,34 +70,34 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState<boolean>(true);
   const logoutTimerRef = useRef<number | null>(null);
 
-  const clearLogoutTimer = () => {
+  const clearLogoutTimer = useCallback(() => {
     if (logoutTimerRef.current !== null) {
       window.clearTimeout(logoutTimerRef.current);
       logoutTimerRef.current = null;
     }
-  };
+  }, []);
 
-  const clearAuth = () => {
+  const clearAuth = useCallback(() => {
     setToken(null);
     setUser(null);
     clearAuthStorage();
     clearLogoutTimer();
-  };
+  }, [clearLogoutTimer]);
 
-  const clearServerSession = async () => {
+  const clearServerSession = useCallback(async () => {
     try {
       await apiLogout();
     } catch (err) {
       console.error("Automatic logout error", err);
     }
-  };
+  }, []);
 
-  const expireAuth = () => {
+  const expireAuth = useCallback(() => {
     clearAuth();
     void clearServerSession();
-  };
+  }, [clearAuth, clearServerSession]);
 
-  const scheduleAutoLogout = (authToken: string) => {
+  const scheduleAutoLogout = useCallback((authToken: string) => {
     clearLogoutTimer();
     const expiration = getTokenExpiration(authToken);
     if (!expiration) return;
@@ -106,7 +115,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
 
     scheduleNextCheck();
-  };
+  }, [clearLogoutTimer, expireAuth]);
 
   useEffect(() => {
     const restoreAuth = async () => {
@@ -159,7 +168,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return () => {
       clearLogoutTimer();
     };
-  }, []);
+  }, [clearAuth, clearLogoutTimer, clearServerSession, scheduleAutoLogout]);
 
   const doLogin = async (identifier: string, password: string, rememberMe = false) => {
     setLoading(true);
@@ -216,15 +225,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   return (
     <AuthContext.Provider value={value}>
-      {loading ? <Loader fullPage message="Preparing your experience..." /> : children}
+      {children}
+      {loading && <Loader fullPage message="Preparing your experience..." />}
     </AuthContext.Provider>
   );
-};
-
-export const useAuth = (): AuthContextType => {
-  const ctx = useContext(AuthContext);
-  if (!ctx) throw new Error("useAuth must be used within AuthProvider");
-  return ctx;
 };
 
 export default AuthContext;

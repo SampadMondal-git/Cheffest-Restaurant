@@ -1,79 +1,71 @@
 import { Link, useNavigate } from "react-router-dom";
-import { useState, useEffect, useCallback } from "react";
-import { useAuth } from "../src/contexts/AuthContext";
+import { useRef, useState } from "react";
+import { useAuth } from "../src/contexts/useAuth";
 
 const Login = () => {
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const [showToast, setShowToast] = useState(false);
-  const [toastActive, setToastActive] = useState(false);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const toastTimerRef = useRef<number | null>(null);
 
   const navigate = useNavigate();
   const { login } = useAuth();
 
-  const dismissToast = useCallback(() => {
-    setError(null);
-  }, []);
-
-  useEffect(() => {
-    let timer: ReturnType<typeof setTimeout>;
-
-    if (error) {
-      setShowToast(true);
-      requestAnimationFrame(() => {
-        setToastActive(true);
-      });
-      timer = setTimeout(() => {
-        dismissToast();
-      }, 3000);
-    } else {
-      setToastActive(false);
-      timer = setTimeout(() => {
-        setShowToast(false);
-      }, 300);
+  const showToast = (message: string) => {
+    setToastMessage(message);
+    if (toastTimerRef.current !== null) {
+      window.clearTimeout(toastTimerRef.current);
     }
-
-    return () => clearTimeout(timer);
-  }, [error, dismissToast]);
+    toastTimerRef.current = window.setTimeout(() => {
+      setToastMessage(null);
+    }, 4000);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError(null);
+    e.stopPropagation();
+
+    if (!identifier.trim() || !password.trim()) {
+      showToast("Please enter your email/phone and password.");
+      return;
+    }
 
     try {
-      await login(identifier, password, rememberMe);
+      await login(identifier.trim(), password, rememberMe);
       setIdentifier("");
       setPassword("");
       setRememberMe(false);
       navigate("/");
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const responseMessage =
+        typeof error === "object" &&
+        error !== null &&
+        "response" in error &&
+        typeof (error as { response?: { data?: { message?: string } } }).response?.data?.message === "string"
+          ? (error as { response?: { data?: { message?: string } } }).response?.data?.message
+          : null;
+
+      const message = responseMessage || "Login failed. Please check your email/number and password.";
       console.error(error);
-      setError(
-        error?.response?.data?.message ||
-        "Login failed. Please check your email/number and password."
-      );
+      showToast(message);
     }
   };
 
   return (
     <div className="flex min-h-[70vh] w-full flex-col items-center justify-center px-4 py-8 text-center sm:px-6 lg:px-8">
-      {/* Toast – unchanged */}
-      {showToast && (
+      {toastMessage && (
         <div
           role="alert"
-          className={`fixed top-25 right-4 z-50 max-w-sm w-full flex items-start gap-3 rounded-lg border border-red-200 bg-red-50 p-4 shadow-lg transition-all duration-300 ease-in-out ${toastActive
-              ? "translate-x-0 opacity-100"
-              : "translate-x-full opacity-0"
-            }`}
+          aria-live="assertive"
+          className="fixed top-6 left-1/2 z-50 flex w-[min(92vw,420px)] -translate-x-1/2 items-start gap-3 rounded-xl border border-red-200 bg-white p-4 text-[#ff9900] shadow-2xl"
         >
           <svg
-            className="mt-0.5 h-5 w-5 shrink-0 text-red-500"
+            className="mt-0.5 h-6 w-6 shrink-0 text-[#ff9900]"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
+            aria-hidden="true"
           >
             <path
               strokeLinecap="round"
@@ -82,21 +74,22 @@ const Login = () => {
               d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
             />
           </svg>
-          <div className="flex-1 min-w-0">
-            <p className="font-semibold text-red-800 text-left">Login failed</p>
-            <p className="mt-0.5 text-sm text-red-600 text-left">{error}</p>
+          <div className="flex-1">
+            <p className="font-medium">Login failed</p>
+            <p className="mt-1 text-sm text-gray-600">{toastMessage}</p>
           </div>
           <button
             type="button"
-            onClick={dismissToast}
-            className="ml-2 shrink-0 text-red-400 transition-colors hover:text-red-600 cursor-pointer"
-            aria-label="Dismiss error"
+            onClick={() => setToastMessage(null)}
+            aria-label="Close login error"
+            className="rounded-md p-1 text-gray-400 transition hover:bg-gray-100 hover:text-gray-700 cursor-pointer"
           >
             <svg
-              className="h-4 w-4"
+              className="h-5 w-5"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
+              aria-hidden="true"
             >
               <path
                 strokeLinecap="round"

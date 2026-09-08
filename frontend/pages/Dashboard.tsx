@@ -5,7 +5,7 @@ import { getAllOrders } from "../api/manageOrder";
 import { getAllReservations } from "../api/manageReservation";
 import { getAllContacts, getAllFeedback } from "../api/adminDashboard";
 import Loader from "../components/global/loader";
-import { useAuth } from "../src/contexts/AuthContext";
+import { useAuth } from "../src/contexts/useAuth";
 // Premium SVG icons from lucide-react
 import { Users, Utensils, ShoppingBag, Calendar, BarChart3 } from "lucide-react";
 
