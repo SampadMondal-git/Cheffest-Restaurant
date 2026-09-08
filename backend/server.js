@@ -19,7 +19,6 @@ import {
     generalLimiter,
     authLimiter,
     forgotPasswordLimiter,
-    contactFormLimiter,
     feedbackLimiter,
     reviewLimiter
 } from './middleware/rateLimit.middleware.js'
@@ -64,7 +63,7 @@ app.use('/feedback', feedbackLimiter, postFeedback) // Feedback base route with 
 app.use('/reservation', bookReservation) // Reservation base route
 app.use('/order', orderRoute) // Order base route
 app.use('/user', manageUser) // User base route
-app.use('/contact', contactFormLimiter, postContact) // Contact base route with stricter limit
+app.use('/contact', postContact) // Contact base route
 app.use('/cart', cartRoute) // Cart base route
 app.use('/revenue', revenueRoute) // Revenue analytics base route
 
