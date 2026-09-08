@@ -575,6 +575,7 @@ export function buildMonthlyRevenueRows(orders, filters = {}) {
       orders: 0,
       tax: 0,
       servedOrders: 0,
+      cancelledOrders: 0,
     };
 
     current.orders += 1;
@@ -582,6 +583,9 @@ export function buildMonthlyRevenueRows(orders, filters = {}) {
       current.revenue += getRevenueAmount(order);
       current.tax += getTaxAmount(order);
       current.servedOrders += 1;
+    }
+    if (order.status === "cancelled") {
+      current.cancelledOrders += 1;
     }
     monthlyData.set(key, current);
   });
@@ -603,6 +607,8 @@ export function buildMonthlyRevenueRows(orders, filters = {}) {
         totalRevenue: monthData.revenue,
         revenueGrowth: previousRevenue ? ((monthData.revenue - previousRevenue) / previousRevenue) * 100 : 0,
         totalOrders: monthData.orders,
+        servedOrders: monthData.servedOrders,
+        cancelledOrders: monthData.cancelledOrders,
         totalTaxCollected: monthData.tax,
         averageDailyRevenue: monthData.revenue / daysInPeriod,
         averageOrderValue: monthData.servedOrders ? monthData.revenue / monthData.servedOrders : 0,
