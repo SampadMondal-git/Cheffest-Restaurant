@@ -17,7 +17,9 @@ import {
 interface RevenuePoint {
   month: string;
   revenue: number;      // in rupees
-  orders: number;
+  totalOrders: number;
+  servedOrders: number;
+  cancelledOrders: number;
   avgOrderValue: number;
 }
 
@@ -129,14 +131,30 @@ const RestaurantDashboard: React.FC = () => {
       const yesterdayOrders = orders.filter((order) => new Date(order.createdAt ?? 0).toDateString() === yesterdayKey);
       const todayTotal = todayOrders.reduce((sum, order) => sum + Number(order.totalAmount ?? 0), 0);
       const yesterdayTotal = yesterdayOrders.reduce((sum, order) => sum + Number(order.totalAmount ?? 0), 0);
-      const monthlyOrderStats = new Map<string, { orders: number; revenue: number }>();
+      const monthlyOrderStats = new Map<string, {
+        totalOrders: number;
+        servedOrders: number;
+        cancelledOrders: number;
+        revenue: number;
+      }>();
 
       orders.forEach((order) => {
         const date = new Date(order.createdAt ?? 0);
         const monthKey = `${date.getFullYear()}-${date.getMonth()}`;
-        const current = monthlyOrderStats.get(monthKey) ?? { orders: 0, revenue: 0 };
-        current.orders += 1;
-        current.revenue += Number(order.totalAmount ?? 0);
+        const current = monthlyOrderStats.get(monthKey) ?? {
+          totalOrders: 0,
+          servedOrders: 0,
+          cancelledOrders: 0,
+          revenue: 0,
+        };
+        current.totalOrders += 1;
+        if (order.status === 'served') {
+          current.servedOrders += 1;
+          current.revenue += Number(order.totalAmount ?? 0);
+        }
+        if (order.status === 'cancelled') {
+          current.cancelledOrders += 1;
+        }
         monthlyOrderStats.set(monthKey, current);
       });
 
@@ -153,12 +171,19 @@ const RestaurantDashboard: React.FC = () => {
       setRevenueHistoryData(series.map((point: { label: string; value: number }) => {
         const monthIndex = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'].indexOf(point.label);
         const monthKey = `${new Date().getFullYear()}-${monthIndex}`;
-        const stats = monthlyOrderStats.get(monthKey) ?? { orders: 0, revenue: 0 };
+        const stats = monthlyOrderStats.get(monthKey) ?? {
+          totalOrders: 0,
+          servedOrders: 0,
+          cancelledOrders: 0,
+          revenue: 0,
+        };
         return {
         month: getMonthLabel(point.label),
-        revenue: Number(point.value ?? 0),
-        orders: stats.orders,
-        avgOrderValue: stats.orders ? stats.revenue / stats.orders : 0,
+        revenue: stats.revenue,
+        totalOrders: stats.totalOrders,
+        servedOrders: stats.servedOrders,
+        cancelledOrders: stats.cancelledOrders,
+        avgOrderValue: stats.servedOrders ? stats.revenue / stats.servedOrders : 0,
       }; }));
       setPaymentMethods((paymentResponse ?? []).map((method: PaymentMethod) => ({
         label: method.label,
@@ -166,6 +191,7 @@ const RestaurantDashboard: React.FC = () => {
       })));
       setTopItems(Array.from(itemMap.values()).sort((a, b) => b.quantity - a.quantity).slice(0, 5));
       setPendingOrders(orders
+        .filter((order) => order.status !== 'cancelled')
         .filter((order) => ['pending', 'failed'].includes(order.payment?.[0]?.status ?? 'pending'))
         .sort((a, b) => Number(new Date(b.createdAt ?? 0)) - Number(new Date(a.createdAt ?? 0)))
         .slice(0, 10)
@@ -466,17 +492,25 @@ const RestaurantDashboard: React.FC = () => {
               {hoveredPoint && (
                 <div className="mt-3 rounded-xl border border-slate-200 bg-white p-3 shadow-lg text-sm">
                   <p className="font-semibold text-slate-800">{hoveredPoint.month}</p>
-                  <div className="mt-1 grid grid-cols-3 gap-4 text-xs">
+                  <div className="mt-1 grid grid-cols-2 gap-3 text-xs sm:grid-cols-5">
                     <div>
                       <span className="text-slate-500">Revenue</span>
-                      <p className="font-medium text-slate-900">{formatLakhs(hoveredPoint.revenue)}</p>
+                      <p className="font-medium text-slate-900">{formatCurrency(hoveredPoint.revenue)}</p>
                     </div>
                     <div>
-                      <span className="text-slate-500">Orders</span>
-                      <p className="font-medium text-slate-900">{hoveredPoint.orders}</p>
+                      <span className="text-slate-500">Total Orders</span>
+                      <p className="font-medium text-slate-900">{hoveredPoint.totalOrders}</p>
                     </div>
                     <div>
-                      <span className="text-slate-500">Avg. Order</span>
+                      <span className="text-slate-500">Served Orders</span>
+                      <p className="font-medium text-slate-900">{hoveredPoint.servedOrders}</p>
+                    </div>
+                    <div>
+                      <span className="text-slate-500">Cancelled Orders</span>
+                      <p className="font-medium text-slate-900">{hoveredPoint.cancelledOrders}</p>
+                    </div>
+                    <div>
+                      <span className="text-slate-500">Avg. Order Value</span>
                       <p className="font-medium text-slate-900">{formatCurrency(hoveredPoint.avgOrderValue)}</p>
                     </div>
                   </div>
