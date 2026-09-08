@@ -222,7 +222,7 @@ function ManageItems() {
   // Ref to store the currently selected item's ID (used even after detail modal is closed)
   const selectedItemIdRef = useRef<string | null>(null);
 
-  // ----- Initial fetch & periodic updates -----
+  // ----- Initial fetch -----
   useEffect(() => {
     const loadItems = async () => {
       try {
@@ -233,24 +233,6 @@ function ManageItems() {
       }
     };
     void loadItems();
-
-    // Poll every 30 seconds to catch external changes (e.g., new reviews)
-    const interval = setInterval(loadItems, 30000);
-    return () => clearInterval(interval);
-  }, []);
-
-  // Refetch on window focus (when admin switches back to tab)
-  useEffect(() => {
-    const onFocus = async () => {
-      try {
-        const response = await getAllItems();
-        setItems(response.data);
-      } catch (err) {
-        console.error("Failed to refetch items on focus", err);
-      }
-    };
-    window.addEventListener("focus", onFocus);
-    return () => window.removeEventListener("focus", onFocus);
   }, []);
 
   // Lock body scroll when any modal/panel is open
