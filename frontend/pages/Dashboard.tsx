@@ -167,7 +167,11 @@ const Dashboard: React.FC = () => {
         });
         setUpcomingReservations(upcoming);
 
-        setContacts(getArray(contactsResponse, "contacts").slice(0, 5));
+        const allContacts: Contact[] = getArray(contactsResponse, "contacts");
+        allContacts.sort(
+          (a, b) => new Date(b.createdAt ?? 0).getTime() - new Date(a.createdAt ?? 0).getTime()
+        );
+        setContacts(allContacts.slice(0, 5));
         setFeedback(getArray(feedbackResponse, "feedback").slice(0, 5));
       } catch (error) {
         console.error("Error fetching data:", error);
@@ -496,7 +500,12 @@ const Dashboard: React.FC = () => {
             </div>
 
             <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-4 sm:p-6 border border-gray-200 shadow-lg">
-              <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-6">Recent Messages</h3>
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="text-lg sm:text-xl font-bold text-gray-900">Recent Messages</h3>
+                <Link to="/messages" className="text-[#ff9900] text-sm font-medium hover:underline">
+                  View All
+                </Link>
+              </div>
               <div className="space-y-3">
                 {contacts.length > 0 ? (
                   contacts.map((contact) => (
