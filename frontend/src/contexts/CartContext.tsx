@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useContext, useEffect, useRef, useState } from "react";
 import { useAuth } from "./AuthContext";
 import * as cartAPI from "../../api/cart";
 
@@ -65,6 +65,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   });
   const [isOpen, setIsOpen] = useState(false);
+  const hydratedStorageKeyRef = useRef<string | null>(null);
 
   // Load cart from backend when user authenticates
   useEffect(() => {
@@ -73,6 +74,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         try {
           const response = await cartAPI.getCart();
           const backendItems = response.data?.items || [];
+          hydratedStorageKeyRef.current = storageKey;
           setItems(backendItems);
           // Update local storage
           try {
@@ -86,8 +88,10 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
           try {
             const raw = localStorage.getItem(storageKey);
             const stored = raw ? (JSON.parse(raw) as CartItem[]) : [];
+            hydratedStorageKeyRef.current = storageKey;
             setItems(stored);
           } catch {
+            hydratedStorageKeyRef.current = storageKey;
             setItems([]);
           }
         }
@@ -99,7 +103,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Sync cart to backend when items change (only for authenticated users)
   useEffect(() => {
-    if (!isAuthenticated || !user) return;
+    if (!isAuthenticated || !user || hydratedStorageKeyRef.current !== storageKey) return;
 
     const syncCartToBackend = async () => {
       try {
@@ -127,6 +131,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (!user) {
+      hydratedStorageKeyRef.current = null;
       setItems([]);
       return;
     }
