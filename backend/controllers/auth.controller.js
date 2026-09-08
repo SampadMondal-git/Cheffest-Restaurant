@@ -2,7 +2,7 @@ import userModel from "../model/user.model.js";
 import bcrypt from "bcrypt";
 import crypto from "crypto";
 import validator from "validator";
-import generateToken from "../utils/generatesToken.js";
+import generateToken, { jwtCookieOptions } from "../utils/generatesToken.js";
 import sendResetEmail from "../services/emailService.js";
 import jwt from "jsonwebtoken";
 
@@ -148,12 +148,7 @@ export const login = async (req, res) => {
 export const logout = async (req, res) => {
   // logic of logout route
   try {
-    res.clearCookie("jwt", {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "Strict",
-      path: "/",
-    });
+    res.clearCookie("jwt", { ...jwtCookieOptions, maxAge: 0 });
     return res.status(200).json({ message: "Logout successful" });
   } catch (error) {
     console.error("Logout error:", error);
