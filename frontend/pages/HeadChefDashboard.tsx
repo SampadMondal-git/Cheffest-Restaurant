@@ -50,35 +50,42 @@ const STATUS_OPTIONS = [
   "cancelled",
 ] as const;
 
-const STATUS_STYLES: Record<string, { bg: string; text: string; icon: ReactNode }> = {
+// Extended style: added border color for each status
+const STATUS_STYLES: Record<string, { bg: string; text: string; border: string; icon: ReactNode }> = {
   pending: {
     bg: "bg-yellow-100",
     text: "text-yellow-800",
+    border: "border-yellow-400",
     icon: <Clock className="w-4 h-4" />,
   },
   accepted: {
     bg: "bg-blue-100",
     text: "text-blue-800",
+    border: "border-blue-400",
     icon: <CheckCircle className="w-4 h-4" />,
   },
   preparing: {
     bg: "bg-orange-100",
     text: "text-orange-800",
+    border: "border-orange-400",
     icon: <ChefHat className="w-4 h-4" />,
   },
   ready: {
     bg: "bg-green-100",
     text: "text-green-800",
+    border: "border-green-400",
     icon: <UtensilsCrossed className="w-4 h-4" />,
   },
   served: {
     bg: "bg-emerald-100",
     text: "text-emerald-800",
+    border: "border-emerald-400",
     icon: <CheckCircle className="w-4 h-4" />,
   },
   cancelled: {
     bg: "bg-red-100",
     text: "text-red-800",
+    border: "border-red-400",
     icon: <XCircle className="w-4 h-4" />,
   },
 };
@@ -280,17 +287,39 @@ export default function HeadChefDashboard() {
                     {order.items?.length || 0} item{order.items?.length !== 1 ? "s" : ""}
                   </p>
 
+                  {/* Status chips with status-specific highlight border */}
                   <div>
-                    <CustomSelect
-                      label="Update status"
-                      value={order.status}
-                      options={STATUS_OPTIONS.map((status) => ({
-                        value: status,
-                        label: status.charAt(0).toUpperCase() + status.slice(1),
-                        description: order.status === status ? "Current status" : `Set status to ${status}`,
-                      }))}
-                      onChange={(value) => handleStatusSelection(order, value)}
-                    />
+                    <p className="mb-2 text-xs font-medium uppercase tracking-wider text-gray-400">
+                      Update status
+                    </p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {STATUS_OPTIONS.map((status) => {
+                        const isCurrent = status === order.status;
+                        const style = STATUS_STYLES[status];
+                        return (
+                          <button
+                            key={status}
+                            onClick={() => handleStatusSelection(order, status)}
+                            className={`
+                              inline-flex items-center gap-1.5 whitespace-nowrap rounded-full 
+                              px-3 py-1 text-xs font-medium transition-all 
+                              hover:scale-105 hover:shadow-sm focus:outline-none cursor-pointer
+                              ${
+                                isCurrent
+                                  ? `${style.bg} ${style.text} border-2 ${style.border} shadow-sm`
+                                  : "border border-gray-200 bg-white text-gray-600 hover:border-gray-300"
+                              }
+                            `}
+                          >
+                            {style.icon}
+                            {status.charAt(0).toUpperCase() + status.slice(1)}
+                          </button>
+                        );
+                      })}
+                    </div>
+                    <p className="mt-1 text-xs text-gray-400">
+                      Click any status to change (confirmation required)
+                    </p>
                   </div>
                 </div>
               );
@@ -310,8 +339,8 @@ export default function HeadChefDashboard() {
                 <h3 className="text-lg font-semibold text-gray-900">Confirm status change</h3>
                 <p className="mt-1 text-sm text-gray-600">
                   Change <span className="font-semibold">{pendingChange.orderNumber}</span> from{' '}
-                  <span className="font-semibold">{pendingChange.currentStatus}</span> to{' '}
-                  <span className="font-semibold">{pendingChange.newStatus}</span>?
+                  <span className="font-semibold">{pendingChange.currentStatus.toUpperCase()}</span> to{' '}
+                  <span className="font-semibold">{pendingChange.newStatus.toUpperCase()}</span>?
                 </p>
               </div>
             </div>
