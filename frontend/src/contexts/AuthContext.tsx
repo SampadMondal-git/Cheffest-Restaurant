@@ -75,11 +75,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     clearLogoutTimer();
   };
 
+  const clearServerSession = async () => {
+    try {
+      await apiLogout();
+    } catch (err) {
+      console.error("Automatic logout error", err);
+    }
+  };
+
   const expireAuth = () => {
     clearAuth();
-    void apiLogout().catch((err) => {
-      console.error("Automatic logout error", err);
-    });
+    void clearServerSession();
   };
 
   const scheduleAutoLogout = (authToken: string) => {
@@ -131,6 +137,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         } catch (err) {
           console.error("Stored token is invalid", err);
           clearAuth();
+          await clearServerSession();
         }
       } else {
         try {
@@ -141,6 +148,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         } catch (err) {
           console.error("Failed to restore auth from token", err);
           clearAuth();
+          await clearServerSession();
         }
       }
 
