@@ -34,6 +34,7 @@ const GetOrderByUserId = lazy(() => import('../components/user/order'));
 const ManageOrders = lazy(() => import('../components/dashboard/manageOrders'));
 const Users = lazy(() => import('../components/dashboard/manageUsers'));
 const ManageReservation = lazy(() => import('../components/dashboard/manageReservation'));
+const Messages = lazy(() => import('../pages/Messages'));
 const ConfirmationModal = lazy(() => import('../components/global/ConfirmationModal'));
 
 function ScrollToTop() {
@@ -85,6 +86,7 @@ function App() {
                                     <Route path="/headchef-dashboard" element={<HeadChefDashboard />} />
                                     <Route path="/users" element={<Users />} />
                                     <Route path="/manage-reservations" element={<ManageReservation />} />
+                                    <Route path="/messages" element={<Messages />} />
                                 </Routes>
                             </Suspense>
                         </main>
