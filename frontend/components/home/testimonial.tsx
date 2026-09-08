@@ -25,7 +25,7 @@ function Testimonial() {
                 {/* Card 1 */}
                 <div className="feedback w-full sm:w-[calc(50%-0.75rem)] lg:w-1/3 min-h-50 sm:min-h-60 lg:min-h-75 h-auto lg:h-75 bg-[#343942] flex flex-col rounded-lg p-4 sm:p-5 lg:p-6">
                     <div className="user flex items-center gap-3 sm:gap-4 pb-4 border-b border-gray-400">
-                        <img src={user} alt="user" className="w-8 sm:w-10 lg:w-12 h-8 sm:h-10 lg:h-12" />
+                        <img src={user} alt="user" loading="lazy" decoding="async" className="w-8 sm:w-10 lg:w-12 h-8 sm:h-10 lg:h-12" />
                         <div className="user-details text-start">
                             <h3 className="font-bold text-white text-base sm:text-lg lg:text-xl">Rahul Das</h3>
                             <p className="text-[#ff9900] text-sm sm:text-base">Kolkata</p>
@@ -39,7 +39,7 @@ function Testimonial() {
                 {/* Card 2 */}
                 <div className="feedback w-full sm:w-[calc(50%-0.75rem)] lg:w-1/3 min-h-50 sm:min-h-60 lg:min-h-75 h-auto lg:h-75 bg-[#343942] flex flex-col rounded-lg p-4 sm:p-5 lg:p-6">
                     <div className="user flex items-center gap-3 sm:gap-4 pb-4 border-b border-gray-400">
-                        <img src={user} alt="user" className="w-8 sm:w-10 lg:w-12 h-8 sm:h-10 lg:h-12" />
+                        <img src={user} alt="user" loading="lazy" decoding="async" className="w-8 sm:w-10 lg:w-12 h-8 sm:h-10 lg:h-12" />
                         <div className="user-details text-start">
                             <h3 className="font-bold text-white text-base sm:text-lg lg:text-xl">Priyanka Mondal</h3>
                             <p className="text-[#ff9900] text-sm sm:text-base">Park Street</p>
@@ -53,7 +53,7 @@ function Testimonial() {
                 {/* Card 3 */}
                 <div className="feedback w-full sm:w-[calc(50%-0.75rem)] lg:w-1/3 min-h-50 sm:min-h-60 lg:min-h-75 h-auto lg:h-75 bg-[#343942] flex flex-col rounded-lg p-4 sm:p-5 lg:p-6">
                     <div className="user flex items-center gap-3 sm:gap-4 pb-4 border-b border-gray-400">
-                        <img src={user} alt="user" className="w-8 sm:w-10 lg:w-12 h-8 sm:h-10 lg:h-12" />
+                        <img src={user} alt="user" loading="lazy" decoding="async" className="w-8 sm:w-10 lg:w-12 h-8 sm:h-10 lg:h-12" />
                         <div className="user-details text-start">
                             <h3 className="font-bold text-white text-base sm:text-lg lg:text-xl">Pranay Saha</h3>
                             <p className="text-[#ff9900] text-sm sm:text-base">Saltlake</p>

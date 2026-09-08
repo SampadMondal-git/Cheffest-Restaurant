@@ -27,19 +27,19 @@ function Service() {
 
             <div className="offer-icons w-full md:w-1/2 flex flex-wrap md:flex-nowrap items-center justify-center sm:justify-between gap-4 sm:gap-6">
                 <div className="icon flex flex-col items-center justify-center w-full sm:w-[calc(50%-0.75rem)] md:w-1/3 h-40 sm:h-44 md:h-48 bg-[#292836] text-white gap-3 sm:gap-4 p-3 sm:p-4">
-                    <img src={menus} alt="menu" className="w-8 sm:w-10 md:w-12 h-8 sm:h-10 md:h-12" />
+                    <img src={menus} alt="menu" loading="lazy" decoding="async" className="w-8 sm:w-10 md:w-12 h-8 sm:h-10 md:h-12" />
                     <h3 className="text-sm sm:text-base">Special Menus</h3>
                 </div>
 
                 <div className="icon flex flex-col items-center justify-center w-full sm:w-[calc(50%-0.75rem)] md:w-1/3 h-40 sm:h-44 md:h-48 bg-[#292836] text-white gap-3 sm:gap-4 p-3 sm:p-4">
-                    <img src={opened} alt="hours" className="w-8 sm:w-10 md:w-12 h-8 sm:h-10 md:h-12" />
+                    <img src={opened} alt="hours" loading="lazy" decoding="async" className="w-8 sm:w-10 md:w-12 h-8 sm:h-10 md:h-12" />
                     <h3 className="text-center text-sm sm:text-base">
                         Mon - Fri<br />10:00 AM - 10:00 PM
                     </h3>
                 </div>
 
                 <div className="icon flex flex-col items-center justify-center w-full sm:w-[calc(50%-0.75rem)] md:w-1/3 h-40 sm:h-44 md:h-48 bg-[#292836] text-white gap-3 sm:gap-4 p-3 sm:p-4">
-                    <img src={delivery} alt="delivery" className="w-8 sm:w-10 md:w-12 h-8 sm:h-10 md:h-12" />
+                    <img src={delivery} alt="delivery" loading="lazy" decoding="async" className="w-8 sm:w-10 md:w-12 h-8 sm:h-10 md:h-12" />
                     <h3 className="text-sm sm:text-base">Home Delivery</h3>
                 </div>
             </div>

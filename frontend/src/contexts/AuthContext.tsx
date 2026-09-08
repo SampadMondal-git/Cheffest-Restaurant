@@ -67,7 +67,13 @@ const getTokenExpiration = (token: string): number | null => {
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [loading, setLoading] = useState<boolean>(() => {
+    try {
+      return Boolean(localStorage.getItem("token") || sessionStorage.getItem("token"));
+    } catch {
+      return false;
+    }
+  });
   const logoutTimerRef = useRef<number | null>(null);
 
   const clearLogoutTimer = useCallback(() => {

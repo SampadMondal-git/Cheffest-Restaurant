@@ -4,8 +4,10 @@ import cloudinary from "../config/cloudinary.js";
 
 export const getAllItems = async (req, res) => {
   try {
-    // logic of get all items route
-    const items = await itemModel.find();
+    const items = await itemModel
+      .find()
+      .select("name description price category type images tags isAvailable averageRating reviewCount")
+      .lean();
     return res.status(200).json({ data: items });
   } catch (error) {
     console.error("Delete items error:", error);
