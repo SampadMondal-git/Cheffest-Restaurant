@@ -62,7 +62,7 @@ interface SelectOption {
   label: string;
 }
 
-const _CustomSelect = ({
+const CustomSelect = ({
   options,
   value,
   onChange,
@@ -123,7 +123,7 @@ const _CustomSelect = ({
   );
 };
 
-void _CustomSelect;
+void CustomSelect;
 
 /* ------------------ Star Rating Input ------------------ */
 const StarRatingInput = ({ rating, onChange }: { rating: number; onChange: (r: number) => void }) => (
@@ -185,7 +185,11 @@ const ReviewsSection = ({
   }, [itemId]);
 
   useEffect(() => {
-    fetchReviews();
+    const reviewFetch = window.setTimeout(() => {
+      void fetchReviews();
+    }, 0);
+
+    return () => window.clearTimeout(reviewFetch);
   }, [fetchReviews]);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -290,7 +294,7 @@ function OurMenu() {
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const { addItem } = useCart();
 
-  // ---- Fetch items initially and set up periodic refresh + window focus refresh ----
+  // ---- Fetch items once when the page opens ----
   useEffect(() => {
     let ignore = false;
     const loadItems = async () => {
@@ -307,29 +311,10 @@ function OurMenu() {
         }
       }
     };
-    // Initial load
     loadItems();
-
-    // Poll every 30 seconds to catch external changes (e.g., admin delete review)
-    const interval = setInterval(loadItems, 30000);
     return () => {
       ignore = true;
-      clearInterval(interval);
     };
-  }, []);
-
-  // Refetch when the window regains focus (e.g., user switches back to the tab)
-  useEffect(() => {
-    const onFocus = async () => {
-      try {
-        const res = await getAllItems();
-        setItems(res.data);
-      } catch {
-        // silent fail
-      }
-    };
-    window.addEventListener("focus", onFocus);
-    return () => window.removeEventListener("focus", onFocus);
   }, []);
 
   // Lock body scroll when the detail modal is open
