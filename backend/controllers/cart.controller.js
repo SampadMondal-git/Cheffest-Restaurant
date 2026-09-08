@@ -26,6 +26,11 @@ export const updateCart = async (req, res) => {
 
     let cart = await cartModel.findOne({ user: userId });
 
+    if (items.length === 0) {
+      if (cart) await cartModel.deleteOne({ user: userId });
+      return res.status(200).json({ data: { items: [] } });
+    }
+
     if (!cart) {
       cart = new cartModel({ user: userId, items });
     } else {
@@ -43,13 +48,9 @@ export const clearCart = async (req, res) => {
   try {
     const userId = req.user.userId;
     
-    const result = await cartModel.findOneAndUpdate(
-      { user: userId },
-      { items: [] },
-      { new: true }
-    );
+    await cartModel.deleteOne({ user: userId });
 
-    res.status(200).json({ data: result || { items: [] } });
+    res.status(200).json({ data: { items: [] } });
   } catch (error) {
     res.status(400).json({ message: error.message });
   }

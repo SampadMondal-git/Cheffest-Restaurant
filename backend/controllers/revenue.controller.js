@@ -121,6 +121,8 @@ export const exportRevenueReportExcel = async (req, res) => {
       { header: 'Total Revenue', key: 'totalRevenue', width: 18 },
       { header: 'Revenue Growth %', key: 'revenueGrowth', width: 18 },
       { header: 'Total Orders', key: 'totalOrders', width: 16 },
+      { header: 'Served Orders', key: 'servedOrders', width: 16 },
+      { header: 'Cancelled Orders', key: 'cancelledOrders', width: 18 },
       { header: 'Total Tax Collected', key: 'totalTaxCollected', width: 20 },
       { header: 'Average Daily Revenue', key: 'averageDailyRevenue', width: 22 },
       { header: 'Average Order Value', key: 'averageOrderValue', width: 20 },

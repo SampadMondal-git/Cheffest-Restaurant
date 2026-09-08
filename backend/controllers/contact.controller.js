@@ -63,7 +63,7 @@ export const postContact = async (req, res) => {
 
 export const getAllContacts = async (req, res) => {
     try {
-        const contacts = await Contact.find().sort({ createdAt: -1 }).limit(10);
+        const contacts = await Contact.find().sort({ createdAt: -1 });
         res.status(200).json({ data: contacts });
     } catch (error) {
         console.error("Error fetching contacts:", error);
