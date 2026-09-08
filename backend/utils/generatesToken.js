@@ -1,5 +1,12 @@
 import jwt from "jsonwebtoken";
 
+export const jwtCookieOptions = {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "strict",
+    path: "/",
+};
+
 const generateToken = (user, res, rememberMe = false) => {
     const token = jwt.sign(
         { userId: user._id, role: user.role, position: user.position },
@@ -7,12 +14,7 @@ const generateToken = (user, res, rememberMe = false) => {
         { expiresIn: rememberMe ? "30d" : "1d" }
     );
 
-    const cookieOptions = {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "strict",
-        path: "/",
-    };
+    const cookieOptions = { ...jwtCookieOptions };
 
     if(rememberMe) {
         cookieOptions.maxAge = 30 * 24 * 60 * 60 * 1000;
