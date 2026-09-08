@@ -129,8 +129,10 @@ const RestaurantDashboard: React.FC = () => {
         return createdAt >= previousMonthStart && createdAt < currentMonthStart;
       });
       const yesterdayOrders = orders.filter((order) => new Date(order.createdAt ?? 0).toDateString() === yesterdayKey);
-      const todayTotal = todayOrders.reduce((sum, order) => sum + Number(order.totalAmount ?? 0), 0);
-      const yesterdayTotal = yesterdayOrders.reduce((sum, order) => sum + Number(order.totalAmount ?? 0), 0);
+      const todayServedOrders = todayOrders.filter((order) => order.status === 'served');
+      const yesterdayServedOrders = yesterdayOrders.filter((order) => order.status === 'served');
+      const todayTotal = todayServedOrders.reduce((sum, order) => sum + Number(order.totalAmount ?? 0), 0);
+      const yesterdayTotal = yesterdayServedOrders.reduce((sum, order) => sum + Number(order.totalAmount ?? 0), 0);
       const monthlyOrderStats = new Map<string, {
         totalOrders: number;
         servedOrders: number;
@@ -208,13 +210,13 @@ const RestaurantDashboard: React.FC = () => {
       setTodayOrderCount(todayOrders.length);
       setMonthlyOrderCount(monthlyOrders.length);
       setMonthlyOrderChange(getPercentageChange(monthlyOrders.length, previousMonthOrders.length));
-      setTodayAverageOrderValue(todayOrders.length
-        ? todayTotal / todayOrders.length
+      setTodayAverageOrderValue(todayServedOrders.length
+        ? todayTotal / todayServedOrders.length
         : 0);
       setTodayOrderChange(getPercentageChange(todayOrders.length, yesterdayOrders.length));
       setTodayAverageChange(getPercentageChange(
-        todayOrders.length ? todayTotal / todayOrders.length : 0,
-        yesterdayOrders.length ? yesterdayTotal / yesterdayOrders.length : 0,
+        todayServedOrders.length ? todayTotal / todayServedOrders.length : 0,
+        yesterdayServedOrders.length ? yesterdayTotal / yesterdayServedOrders.length : 0,
       ));
       setLastUpdated(new Date());
     } catch {
@@ -226,8 +228,6 @@ const RestaurantDashboard: React.FC = () => {
 
   React.useEffect(() => {
     void Promise.resolve().then(loadDashboard);
-    const refreshTimer = window.setInterval(loadDashboard, 30000);
-    return () => window.clearInterval(refreshTimer);
   }, [loadDashboard]);
 
   const totalPending = pendingOrders.reduce((sum, order) => sum + order.amount, 0);
