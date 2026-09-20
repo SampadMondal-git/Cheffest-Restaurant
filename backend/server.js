@@ -71,6 +71,10 @@ app.get('/', (req, res) => {
     res.send("Hello from the backend")
 })
 
+app.get('/health', (req, res) => {
+    res.status(200).json({ status: 'healthy', message: 'Server is online' });
+})
+
 const startServer = async () => {
     try {
         await connectDB();
